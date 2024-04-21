@@ -5,17 +5,28 @@ import { Repository } from 'typeorm';
 import { CreateProfessionDto } from './dto/create-profession.dto';
 import { UserEntity } from '../user/entities/user.entity';
 import { CategoryEntity } from '../category/entities/category.entity';
+import { UpdateProfessionDto } from './dto/update-profession.dto';
+import { ServiceEntity } from '../service/entities/service.entity';
+import { OrderEntity } from '../order/entities/order.entity';
+import { OrderServiceEntity } from '../order-service/entities/order-service.entity';
 
 
 @Injectable()
 export class ProfessionService {
   constructor(
-    @InjectRepository(ProfessionEntity)
-    private readonly professionRepository: Repository<ProfessionEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: Repository<CategoryEntity>,
+    @InjectRepository(ProfessionEntity)
+    private readonly professionRepository: Repository<ProfessionEntity>,
+    @InjectRepository(ServiceEntity)
+    private readonly serviceRepository: Repository<ServiceEntity>,
+    @InjectRepository(OrderEntity)
+    private readonly orderRepository: Repository<OrderEntity>,
+    @InjectRepository(OrderServiceEntity)
+    private readonly orderServiceRepository: Repository<OrderServiceEntity>,
+
   ) {
   }
 
@@ -37,7 +48,7 @@ export class ProfessionService {
       }
     });
     if (existingProfessions.length > 0) {
-      throw new BadRequestException('Profession already exists');
+      throw new BadRequestException('Profession already exists with this user and category');
     }
     const newProfessionData: Partial<ProfessionEntity> = {
       user,
@@ -46,6 +57,108 @@ export class ProfessionService {
 
     const newProfession = this.professionRepository.create(newProfessionData);
     return await this.professionRepository.save(newProfession);
+  }
+
+  async updateProfession(id: number, profession: UpdateProfessionDto): Promise<ProfessionEntity> {
+
+    const existingProfession = await this.professionRepository.findOne({ where: { id } });
+    if (!existingProfession) {
+      throw new BadRequestException('Profession not found');
+    }
+    let user=existingProfession.user;
+    if(profession.userId){
+       user = await this.userRepository.findOne({ where: { id: profession.userId } });
+      if (!user) {
+        throw new BadRequestException('No user with id ' + profession.userId);
+      }
+    }
+   let category=existingProfession.category
+   if(profession.categoryId){
+      category = await this.categoryRepository.findOne({ where: { id: profession.categoryId } });
+     if (!category) {
+       throw new BadRequestException('No category with id ' + profession.categoryId);
+     }
+   }
+    const existingProfessions = await this.professionRepository.find({
+      where: {
+        user: { id: user.id },
+        category: { id: category.id}
+      }
+    });
+    if (existingProfessions.length > 0) {
+      throw new BadRequestException('Profession already exists with this user and category');
+    }
+
+
+
+
+    const updatedProfessionData: Partial<ProfessionEntity> = {
+      user,
+      category,
+    };
+
+    const updatedProfession = this.professionRepository.merge(existingProfession, updatedProfessionData);
+    return await this.professionRepository.save(updatedProfession);
+  }
+
+  async deleteProfession(id: number): Promise<ProfessionEntity> {
+    const profession = await this.professionRepository.findOne({ where: { id } });
+    if (!profession) {
+      throw new BadRequestException('Profession not found');
+    }
+    await this.softRemoveServicesAndOrdersAndOrderServices(profession);
+    return await this.professionRepository.softRemove(profession);
+  }
+  async softRemoveServicesAndOrdersAndOrderServices(profession: ProfessionEntity): Promise<void> {
+    const services = await this.serviceRepository.find({ where: { profession: { id: profession.id } }, relations: ['profession'] });
+    for (const service of services) {
+      await this.softRemoveOrderAndOrderServices(service);
+      await this.serviceRepository.softRemove(service);
+    }
+
+  }
+
+  async softRemoveOrderAndOrderServices(service: ServiceEntity): Promise<void> {
+    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'] });
+    for (const orderItem of orderItems) {
+      let order= await this.orderRepository.find({ where: { id: orderItem.order.id } })
+      if(order){
+        await this.orderRepository.softRemove(order);
+      }
+      await this.orderServiceRepository.softRemove(orderItem);
+    }
+  }
+
+  async recoverProfession(id: number): Promise<ProfessionEntity> {
+    const profession = await this.professionRepository.findOne({ where: { id }, withDeleted: true });
+    if (!profession) {
+      throw new BadRequestException('Profession not found');
+    }
+    if(!profession.deletedAt){
+      throw new BadRequestException('Profession is not deleted');
+    }
+     await this.recoverServicesAndOrdersAndOrderServices(profession);
+    return await this.professionRepository.recover(profession);
+  }
+  async recoverServicesAndOrdersAndOrderServices(profession: ProfessionEntity): Promise<void> {
+    const services = await this.serviceRepository.find({ where: { profession: { id: profession.id } }, relations: ['profession'],withDeleted: true });
+    for (const service of services) {
+
+      await this.serviceRepository.recover(service);
+      await this.recoverOrderAndOrderServices(service);
+    }
+
+  }
+
+  async recoverOrderAndOrderServices(service: ServiceEntity): Promise<void> {
+    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'],withDeleted: true});
+    for (const orderItem of orderItems) {
+      let order= await this.orderRepository.find({ where: { id: orderItem.order.id },withDeleted: true})
+      if(order){
+        await this.orderRepository.recover(order);
+      }
+      await this.orderServiceRepository.recover(orderItem);
+    }
   }
 }
 
