@@ -29,7 +29,7 @@ export class CategoryEntity extends  TimestampEntity{
   @Column()
   iconPath: string;
 
-  @OneToMany(()=>ProfessionEntity, profession => profession.category,{ cascade: true, onDelete: 'CASCADE' })
+  @OneToMany(()=>ProfessionEntity, profession => profession.category,{ cascade: true , onDelete: 'CASCADE' })
   professions: ProfessionEntity[];
 
 
