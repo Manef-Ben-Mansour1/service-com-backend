@@ -21,6 +21,10 @@ import { CommentModule } from './comment/comment.module';
 import { CommentEntity } from './comment/entities/comment.entity';
 import { RatingModule } from './rating/rating.module';
 import { RatingEntity } from './rating/entities/rating.entity';
+import { MessageModule } from './message/message.module';
+import { ConversationEntity } from './conversation/entities/conversation.entity';
+import { ConversationModule } from './conversation/conversation.module';
+import { MessageEntity } from './message/entities/message.entity';
 
 dotenv.config();
 
@@ -32,9 +36,9 @@ dotenv.config();
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [UserEntity,CategoryEntity,ProfessionEntity,ServiceEntity,OrderEntity,OrderServiceEntity,CommentEntity,RatingEntity],
+    entities: [UserEntity,CategoryEntity,ProfessionEntity,ServiceEntity,OrderEntity,OrderServiceEntity,CommentEntity,RatingEntity,MessageEntity,ConversationEntity],
     synchronize: true,
-  }), UserModule, CategoryModule, ServiceModule, OrderModule, OrderServiceModule, ProfessionModule, CommentModule, RatingModule],
+  }), UserModule, CategoryModule, ServiceModule, OrderModule, OrderServiceModule, ProfessionModule, CommentModule, RatingModule, MessageModule, ConversationModule],
   controllers: [AppController],
   providers: [AppService],
 })
