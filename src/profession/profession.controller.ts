@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ProfessionService } from './profession.service';
 import { CreateProfessionDto } from './dto/create-profession.dto';
 import { ProfessionEntity } from './entities/profession.entity';
@@ -25,6 +25,18 @@ export class ProfessionController {
   @Patch('recover/:id')
   async  recover(@Param('id',ParseIntPipe) id: number): Promise<ProfessionEntity> {
     return this.professionService.recoverProfession(id);
+  }
+
+  @Get()
+  async getAllProfessions(
+    @Query('page') page: number,
+    @Query('pageSize') pageSize: number,
+  ): Promise<ProfessionEntity[]> {
+    if (!page || !pageSize) {
+      return this.professionService.getAllProfessions();
+    }
+
+    return this.professionService.getAllProfessionsWithPagination(+page, +pageSize);
   }
 
 

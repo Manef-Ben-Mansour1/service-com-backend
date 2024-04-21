@@ -9,6 +9,7 @@ import { UpdateProfessionDto } from './dto/update-profession.dto';
 import { ServiceEntity } from '../service/entities/service.entity';
 import { OrderEntity } from '../order/entities/order.entity';
 import { OrderServiceEntity } from '../order-service/entities/order-service.entity';
+import { isInt } from 'class-validator';
 
 
 @Injectable()
@@ -159,6 +160,30 @@ export class ProfessionService {
       }
       await this.orderServiceRepository.recover(orderItem);
     }
+  }
+
+  async getAllProfessionsWithPagination(page: number, pageSize: number): Promise<ProfessionEntity[]> {
+    if(page<=0){
+      throw new BadRequestException('Page number should be greater than 0');
+    }
+    if(pageSize<=0) {
+      throw new BadRequestException('Page size should be greater than 0');
+    }
+    if(!isInt(page)){
+      throw new BadRequestException('Page number should be an integer');
+    }
+    if(!isInt(pageSize)){
+      throw new BadRequestException('Page size should be an integer');
+    }
+
+    const skip = (page - 1) * pageSize;
+    return this.professionRepository.find({
+      skip,
+      take: pageSize,
+    });
+  }
+  async getAllProfessions(): Promise<ProfessionEntity[]> {
+    return this.professionRepository.find();
   }
 }
 
