@@ -40,4 +40,9 @@ export class CategoryController {
     return this.categoryService.getAllCategoriesWithPagination(+page, +pageSize);
   }
 
+  @Get(':id')
+  async getCategoryById(@Param('id', ParseIntPipe) id: number): Promise<CategoryEntity> {
+    return this.categoryService.getCategoryById(id);
+  }
+
 }
