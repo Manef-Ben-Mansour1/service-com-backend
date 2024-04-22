@@ -18,26 +18,24 @@ export class OrderEntity extends TimestampEntity {
 
   @Column({
     nullable: false,
-  })
-  finalPrice: number;
-  @Column ({
-    nullable: false,
-    type: "enum",
+    type: 'enum',
     enum: OrderStatusEnum,
-    default: OrderStatusEnum.EN_ATTENTE
+    default: OrderStatusEnum.EN_ATTENTE,
   })
   status: OrderStatusEnum;
+  @Column({
+    type: Date,
+    nullable: false
+  })
+  date: Date;
   @ManyToOne(() => UserEntity, (user) => user.orders, {
     eager: true,
     nullable: false,
   })
   user: UserEntity;
-  @ManyToOne(()=>
-    ServiceEntity , (service) => service.orders , {
-    eager : true,
-    nullable: false
+  @ManyToOne(() => ServiceEntity, (service) => service.orders, {
+    eager: true,
+    nullable: false,
   })
-  service : ServiceEntity
-
-
+  service: ServiceEntity;
 }
