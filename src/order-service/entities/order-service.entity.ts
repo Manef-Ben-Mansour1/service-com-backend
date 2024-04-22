@@ -19,6 +19,8 @@ export class OrderServiceEntity extends TimestampEntity {
   @ManyToOne(() => ServiceEntity, (service) => service.orderServices, {
     eager: true,
     nullable: false,
+    cascade: ['soft-remove'],
+    onDelete: 'CASCADE',
   })
   service: ServiceEntity;
 }
