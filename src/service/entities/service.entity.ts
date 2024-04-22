@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import { TimestampEntity } from '../../generics/timestamp.entity';
 import { OrderEntity } from '../../order/entities/order.entity';
-import { OrderServiceEntity } from '../../order-service/entities/order-service.entity';
 import { ProfessionEntity } from '../../profession/entities/profession.entity';
 import { CommentEntity } from '../../comment/entities/comment.entity';
 import { RatingEntity } from '../../rating/entities/rating.entity';
@@ -37,9 +36,6 @@ export class ServiceEntity extends TimestampEntity {
     nullable: false,
   })
   profession: ProfessionEntity;
-
-  @OneToMany(() => OrderServiceEntity, (orderService) => orderService.service)
-  orderServices: OrderServiceEntity[];
 
   @OneToMany(() => CommentEntity, (comment) => comment.service, {
     cascade: true,
