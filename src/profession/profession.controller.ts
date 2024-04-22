@@ -39,6 +39,11 @@ export class ProfessionController {
     return this.professionService.getAllProfessionsWithPagination(+page, +pageSize);
   }
 
+@Get(':id')
+  async getProfessionById(@Param('id',ParseIntPipe) id: number): Promise<ProfessionEntity> {
+    return this.professionService.getProfessionById(id);
+  }
+
 
 
 

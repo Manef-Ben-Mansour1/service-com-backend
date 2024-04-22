@@ -185,5 +185,16 @@ export class ProfessionService {
   async getAllProfessions(): Promise<ProfessionEntity[]> {
     return this.professionRepository.find();
   }
+
+  async getProfessionById(id: number): Promise<ProfessionEntity> {
+    const profession=await this.professionRepository.findOne({ where: { id } });
+
+    if(!profession) {
+
+      throw new BadRequestException('Profession not found');
+    }
+    return profession;
+
+  }
 }
 
