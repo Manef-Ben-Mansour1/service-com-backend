@@ -29,13 +29,8 @@ export class ConversationController {
     return this.conversationService.getConversationById(+id);
   }
 
-
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.conversationService.remove(+id);
-  }
-  @Delete('softDelete/:id')
-  softDelte(@Param('id') id: string) {
+  softDelete(@Param('id') id: string) {
     return this.conversationService.softDelete(+id);
   }
 }
