@@ -8,6 +8,7 @@ import { OrderEntity } from '../order/entities/order.entity';
 import { OrderServiceEntity } from '../order-service/entities/order-service.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { isInt } from 'class-validator';
 
 @Injectable()
 export class ServiceService {
@@ -61,4 +62,83 @@ export class ServiceService {
     const updatedservice=this.serviceRepository.merge(service,newServiceData);
     return await this.serviceRepository.save(service);
   }
+
+  async deleteService(id:number): Promise<ServiceEntity> {
+    const service = await this.serviceRepository.findOne({ where: { id } });
+    if (!service) {
+      throw new BadRequestException('No Service with this id');
+    }
+    await this.softRemoveOrderAndOrderServices(service);
+    return await this.serviceRepository.softRemove(service);
+  }
+
+  async softRemoveOrderAndOrderServices(service: ServiceEntity): Promise<void> {
+    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'] });
+    for (const orderItem of orderItems) {
+      let order= await this.orderRepository.find({ where: { id: orderItem.order.id } })
+      if(order){
+        await this.orderRepository.softRemove(order);
+      }
+      await this.orderServiceRepository.softRemove(orderItem);
+    }
+  }
+
+  async recoverService(id:number): Promise<ServiceEntity> {
+    const service = await this.serviceRepository.findOne({ where: { id }, withDeleted:true });
+    if (!service) {
+      throw new BadRequestException('No Service with this id');
+    }
+
+    if(!service.deletedAt){
+      throw new BadRequestException('Service is not deleted');
+    }
+
+    await this.recoverOrderAndOrderServices(service);
+
+    return await this.serviceRepository.recover(service);
+  }
+
+  async recoverOrderAndOrderServices(service: ServiceEntity): Promise<void> {
+    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'],withDeleted: true});
+    for (const orderItem of orderItems) {
+      let order= await this.orderRepository.find({ where: { id: orderItem.order.id },withDeleted: true})
+      if(order){
+        await this.orderRepository.recover(order);
+      }
+      await this.orderServiceRepository.recover(orderItem);
+    }
+  }
+
+  async getAllServicesWithPagination(page: number, pageSize: number): Promise<ServiceEntity[]> {
+    if(page<=0){
+      throw new BadRequestException('Page number should be greater than 0');
+    }
+    if(pageSize<=0) {
+      throw new BadRequestException('Page size should be greater than 0');
+    }
+    if(!isInt(page)){
+      throw new BadRequestException('Page number should be an integer');
+    }
+    if(!isInt(pageSize)){
+      throw new BadRequestException('Page size should be an integer');
+    }
+
+    const skip = (page - 1) * pageSize;
+    return this.serviceRepository.find({
+      skip,
+      take: pageSize,
+    });
+  }
+  async getAllServices(): Promise<ServiceEntity[]> {
+    return this.serviceRepository.find();
+  }
+
+  async getServiceById(id: number): Promise<ServiceEntity> {
+   const service=await this.serviceRepository.findOne({ where: { id } });
+   if(!service){
+     throw new BadRequestException('No Service with this id');
+   }
+return service;
+  }
+
 }
