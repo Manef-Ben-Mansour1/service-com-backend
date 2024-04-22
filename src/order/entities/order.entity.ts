@@ -9,6 +9,7 @@ import {
 import { UserEntity } from '../../user/entities/user.entity';
 import { TimestampEntity } from '../../generics/timestamp.entity';
 import { OrderStatusEnum } from '../enums/order-status.enum';
+import { ServiceEntity } from 'src/service/entities/service.entity';
 
 @Entity('order')
 export class OrderEntity extends TimestampEntity {
@@ -31,6 +32,12 @@ export class OrderEntity extends TimestampEntity {
     nullable: false,
   })
   user: UserEntity;
+  @ManyToOne(()=>
+    ServiceEntity , (service) => service.orders , {
+    eager : true,
+    nullable: false
+  })
+  service : ServiceEntity
 
 
 }
