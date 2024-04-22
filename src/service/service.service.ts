@@ -4,8 +4,6 @@ import { CategoryEntity } from '../category/entities/category.entity';
 import { Repository } from 'typeorm';
 import { ProfessionEntity } from '../profession/entities/profession.entity';
 import { ServiceEntity } from './entities/service.entity';
-import { OrderEntity } from '../order/entities/order.entity';
-import { OrderServiceEntity } from '../order-service/entities/order-service.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { isInt } from 'class-validator';
@@ -19,10 +17,7 @@ export class ServiceService {
     private readonly professionRepository: Repository<ProfessionEntity>,
     @InjectRepository(ServiceEntity)
     private readonly serviceRepository: Repository<ServiceEntity>,
-    @InjectRepository(OrderEntity)
-    private readonly orderRepository: Repository<OrderEntity>,
-    @InjectRepository(OrderServiceEntity)
-    private readonly orderServiceRepository: Repository<OrderServiceEntity>,
+
   ) {}
 
   async createService(createServiceDto:CreateServiceDto): Promise<ServiceEntity> {
@@ -68,20 +63,11 @@ export class ServiceService {
     if (!service) {
       throw new BadRequestException('No Service with this id');
     }
-    await this.softRemoveOrderAndOrderServices(service);
+
     return await this.serviceRepository.softRemove(service);
   }
 
-  async softRemoveOrderAndOrderServices(service: ServiceEntity): Promise<void> {
-    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'] });
-    for (const orderItem of orderItems) {
-      let order= await this.orderRepository.find({ where: { id: orderItem.order.id } })
-      if(order){
-        await this.orderRepository.softRemove(order);
-      }
-      await this.orderServiceRepository.softRemove(orderItem);
-    }
-  }
+
 
   async recoverService(id:number): Promise<ServiceEntity> {
     const service = await this.serviceRepository.findOne({ where: { id }, withDeleted:true });
@@ -93,21 +79,12 @@ export class ServiceService {
       throw new BadRequestException('Service is not deleted');
     }
 
-    await this.recoverOrderAndOrderServices(service);
+
 
     return await this.serviceRepository.recover(service);
   }
 
-  async recoverOrderAndOrderServices(service: ServiceEntity): Promise<void> {
-    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'],withDeleted: true});
-    for (const orderItem of orderItems) {
-      let order= await this.orderRepository.find({ where: { id: orderItem.order.id },withDeleted: true})
-      if(order){
-        await this.orderRepository.recover(order);
-      }
-      await this.orderServiceRepository.recover(orderItem);
-    }
-  }
+
 
   async getAllServicesWithPagination(page: number, pageSize: number): Promise<ServiceEntity[]> {
     if(page<=0){
