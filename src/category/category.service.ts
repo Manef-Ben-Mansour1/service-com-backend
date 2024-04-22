@@ -3,11 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoryEntity } from './entities/category.entity';
-import { NotFoundError } from 'rxjs';
 import { ProfessionEntity } from '../profession/entities/profession.entity';
 import { ServiceEntity } from '../service/entities/service.entity';
-import { OrderEntity } from '../order/entities/order.entity';
-import { OrderServiceEntity } from '../order-service/entities/order-service.entity';
 import { isInt } from 'class-validator';
 
 @Injectable()
@@ -19,10 +16,7 @@ export class CategoryService {
     private readonly professionRepository: Repository<ProfessionEntity>,
     @InjectRepository(ServiceEntity)
     private readonly serviceRepository: Repository<ServiceEntity>,
-    @InjectRepository(OrderEntity)
-    private readonly orderRepository: Repository<OrderEntity>,
-    @InjectRepository(OrderServiceEntity)
-    private readonly orderServiceRepository: Repository<OrderServiceEntity>,
+
   ) {
   }
 
