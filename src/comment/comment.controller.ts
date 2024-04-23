@@ -20,8 +20,9 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Post()
-  create(@Body() createCommentDto: CreateCommentDto, service: ServiceEntity, user: UserEntity ) {
-    return this.commentService.create(createCommentDto);
+  create(@Body() createCommentDto: CreateCommentDto,
+  service: ServiceEntity, user: UserEntity ) {
+    return this.commentService.create(createCommentDto,service,user);
   }
 
   @Get()

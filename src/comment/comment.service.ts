@@ -4,6 +4,8 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommentEntity } from './entities/comment.entity';
 import { Repository } from 'typeorm';
+import { ServiceEntity } from 'src/service/entities/service.entity';
+import { UserEntity } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class CommentService {
@@ -13,9 +15,24 @@ export class CommentService {
     private readonly commentRepository: Repository<CommentEntity>,
   ) {}
 
-  create(createCommentDto: CreateCommentDto) {
-    return 'This action adds a new comment';
+  create(createCommentDto: CreateCommentDto, 
+        service: ServiceEntity,
+        user: UserEntity
+      )
+   : Promise<CommentEntity> {
+    const { content } = createCommentDto;
+    const newComment = new CommentEntity();
+    newComment.content = content;
+    newComment.service =service
+    // service.find(service => service.id === serviceId);
+    newComment.user =user ;
+    
+    console.log(newComment)
+
+    // Save user to database
+    return this.commentRepository.save(newComment);
   }
+
 
   findAll() {
     return `This action returns all comments`;
