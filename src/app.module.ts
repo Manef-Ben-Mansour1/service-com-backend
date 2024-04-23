@@ -26,7 +26,7 @@ import { MulterModule } from '@nestjs/platform-express';
 dotenv.config();
 
 @Module({
-  imports: [ MulterModule.register({
+  imports: [MulterModule.register({
     dest: './uploads',}),
      TypeOrmModule.forRoot({
     type: "mysql",

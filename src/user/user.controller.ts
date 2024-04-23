@@ -9,6 +9,7 @@ import { User } from 'C:/Users/amirb/service-com-backend/src/decorators/user.dec
 import { UserRoleEnum } from './enum/userRole.enum';
 import { UserStatusEnum } from './enum/userStatus.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterFile } from './interfaces/multer-file.interface';
 
 @Controller('user')
 export class UserController {
@@ -36,7 +37,7 @@ export class UserController {
     @UseInterceptors(FileInterceptor('file')) // 'file' is the name of the field in the form-data
     async register(
         @Body() userData: UserSubscribeDto,
-        @UploadedFile() file: Express.Multer.File, // Use the UploadedFile decorator to access the file
+        @UploadedFile() file: MulterFile, // Use the UploadedFile decorator to access the file
     ): Promise<Partial<UserEntity>> {
         return this.userService.register(userData, file);
     }

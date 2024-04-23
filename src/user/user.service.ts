@@ -10,6 +10,7 @@ import { UserRoleEnum } from './enum/userRole.enum';
 import { UserStatusEnum } from './enum/userStatus.enum';
 import { createWriteStream } from 'fs';
 import { join } from 'path';
+import { MulterFile } from './interfaces/multer-file.interface';
 
 
 
@@ -56,7 +57,7 @@ export class UserService {
     }
 
 
-    async register(userData: UserSubscribeDto, file: Express.Multer.File) : Promise<Partial<UserEntity>> {
+    async register(userData: UserSubscribeDto, file: MulterFile) : Promise<Partial<UserEntity>> {
         const user = this.userRepository.create({...userData})
         if (user.role === UserRoleEnum.SERVICE_PROVIDER) {
             if (!file) {
@@ -67,7 +68,7 @@ export class UserService {
               fileStream.write(file.buffer);
               fileStream.end();
               user.profileImagePath = filePath;
-            user.status = UserStatusEnum.PENDING; // Set the status to "pending" for service providers
+            user.status = UserStatusEnum.PENDING; 
           }
 
         user.salt = await bcrypt.genSalt();
