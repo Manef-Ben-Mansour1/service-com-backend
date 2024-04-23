@@ -7,8 +7,7 @@ import { UserEntity } from '../user/entities/user.entity';
 import { CategoryEntity } from '../category/entities/category.entity';
 import { UpdateProfessionDto } from './dto/update-profession.dto';
 import { ServiceEntity } from '../service/entities/service.entity';
-import { OrderEntity } from '../order/entities/order.entity';
-import { OrderServiceEntity } from '../order-service/entities/order-service.entity';
+
 import { isInt } from 'class-validator';
 
 
@@ -23,10 +22,7 @@ export class ProfessionService {
     private readonly professionRepository: Repository<ProfessionEntity>,
     @InjectRepository(ServiceEntity)
     private readonly serviceRepository: Repository<ServiceEntity>,
-    @InjectRepository(OrderEntity)
-    private readonly orderRepository: Repository<OrderEntity>,
-    @InjectRepository(OrderServiceEntity)
-    private readonly orderServiceRepository: Repository<OrderServiceEntity>,
+
 
   ) {
   }
@@ -113,22 +109,12 @@ export class ProfessionService {
   async softRemoveServicesAndOrdersAndOrderServices(profession: ProfessionEntity): Promise<void> {
     const services = await this.serviceRepository.find({ where: { profession: { id: profession.id } }, relations: ['profession'] });
     for (const service of services) {
-      await this.softRemoveOrderAndOrderServices(service);
       await this.serviceRepository.softRemove(service);
     }
 
   }
 
-  async softRemoveOrderAndOrderServices(service: ServiceEntity): Promise<void> {
-    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'] });
-    for (const orderItem of orderItems) {
-      let order= await this.orderRepository.find({ where: { id: orderItem.order.id } })
-      if(order){
-        await this.orderRepository.softRemove(order);
-      }
-      await this.orderServiceRepository.softRemove(orderItem);
-    }
-  }
+
 
   async recoverProfession(id: number): Promise<ProfessionEntity> {
     const profession = await this.professionRepository.findOne({ where: { id }, withDeleted: true });
@@ -146,21 +132,11 @@ export class ProfessionService {
     for (const service of services) {
 
       await this.serviceRepository.recover(service);
-      await this.recoverOrderAndOrderServices(service);
     }
 
   }
 
-  async recoverOrderAndOrderServices(service: ServiceEntity): Promise<void> {
-    const orderItems = await this.orderServiceRepository.find({ where: { service: { id: service.id } }, relations: ['service'],withDeleted: true});
-    for (const orderItem of orderItems) {
-      let order= await this.orderRepository.find({ where: { id: orderItem.order.id },withDeleted: true})
-      if(order){
-        await this.orderRepository.recover(order);
-      }
-      await this.orderServiceRepository.recover(orderItem);
-    }
-  }
+
 
   async getAllProfessionsWithPagination(page: number, pageSize: number): Promise<ProfessionEntity[]> {
     if(page<=0){
@@ -184,6 +160,17 @@ export class ProfessionService {
   }
   async getAllProfessions(): Promise<ProfessionEntity[]> {
     return this.professionRepository.find();
+  }
+
+  async getProfessionById(id: number): Promise<ProfessionEntity> {
+    const profession=await this.professionRepository.findOne({ where: { id } });
+
+    if(!profession) {
+
+      throw new BadRequestException('Profession not found');
+    }
+    return profession;
+
   }
 }
 
