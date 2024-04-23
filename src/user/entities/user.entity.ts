@@ -26,8 +26,8 @@ export class UserEntity extends TimestampEntity{
 
   @Column({
     nullable: false,
-})
- gouvernorat: string;
+  })
+  gouvernorat: string;
 
 
   @Column({nullable: false})
@@ -38,12 +38,12 @@ export class UserEntity extends TimestampEntity{
   })
   profileImagePath: string;
 
-@Column({
-  type: "enum",
-  enum: UserRoleEnum,
-  default: UserRoleEnum.USER
-})
-role: UserRoleEnum;
+  @Column({
+    type: "enum",
+    enum: UserRoleEnum,
+    default: UserRoleEnum.USER
+  })
+  role: UserRoleEnum;
 
 
   @Column({
@@ -62,12 +62,10 @@ role: UserRoleEnum;
   })
   salt: string;
 
- @OneToMany(()=>ProfessionEntity , profession => profession.user,{ cascade: true, onDelete: 'CASCADE' })
+  @OneToMany(()=>ProfessionEntity , profession => profession.user,{ cascade: true, onDelete: 'CASCADE' })
   professions: ProfessionEntity[];
 
   @OneToMany(()=>OrderEntity , order => order.user,{ cascade: true, onDelete: 'CASCADE' })
   orders: OrderEntity[];
-
-
 
 }
