@@ -9,7 +9,7 @@ export class TimestampEntity {
     })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({nullable: true})
     updatedAt: Date;
 
     @DeleteDateColumn()
