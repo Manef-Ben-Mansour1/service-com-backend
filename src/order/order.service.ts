@@ -48,4 +48,14 @@ export class OrderService {
       relations: ['user'],
     });
   }
+  async getOrderById(id: number): Promise<OrderEntity> {
+    const order = this.orderRepository.findOne({
+      where: { id },
+      relations: ['user', 'service'],
+    });
+    if (!order) {
+      throw new BadRequestException('Order not found');
+    }
+    return order;
+  }
 }

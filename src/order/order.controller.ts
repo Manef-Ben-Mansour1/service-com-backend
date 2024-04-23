@@ -40,4 +40,10 @@ export class OrderController {
   ): Promise<OrderEntity[]> {
     return this.orderService.getOrdersByServiceId(serviceId);
   }
+  @Get('/:id')
+    async getOrderById(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<OrderEntity> {
+        return this.orderService.getOrderById(id);
+    }
 }
