@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UserSubscribeDto} from  './dto/user-subscribe.dto';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { LoginCredentialsDto} from  './dto/LoginCredentials.dto';
 import { JwtService } from '@nestjs/jwt';
+import { UserRoleEnum } from './enum/userRole.enum';
 
 
 @Injectable()
@@ -17,22 +18,39 @@ export class UserService {
     )   {
     }
 
-    async findAll(): Promise<UserEntity[]> {
-        return await this.userRepository.find();
-      }
+    async findAll(user): Promise<UserEntity[]> {
+        if (user.role === UserRoleEnum.ADMIN)
+            return await this.userRepository.find();
+        throw new UnauthorizedException("Vous n'êtes pas autorisé à consulter tous les utilisateurs.");      
+    }
     
-      async findOne(id: number): Promise<UserEntity> {
-        return await this.userRepository.findOne({ where: { id } });
-      }
+    async findOne(user, id: number): Promise<UserEntity> {
+        if ((user.role === UserRoleEnum.ADMIN) || (user.id === Number(id)))
+            return await this.userRepository.findOne({ where: { id } });
+        console.log(user.id, id);
+        console.log(user.id===id);
+        console.log(typeof(user.id));
+        console.log(typeof(id));
+        throw new UnauthorizedException("Vous n'êtes pas autorisé à consulter cet utilisateur.");
+    }
     
-      async update(id: number, userData: Partial<UserEntity>): Promise<UserEntity> {
-        await this.userRepository.update(id, userData);
-        return await this.userRepository.findOne({ where: { id } });
-      }
+ 
+    async update(user, id: number, userData: Partial<UserEntity>): Promise<UserEntity> {
+        if (user.role === UserRoleEnum.ADMIN || user.id === Number(id)) {
+            await this.userRepository.update(id, userData);
+            return await this.userRepository.findOne({ where: {id} });
+        } else {
+            throw new UnauthorizedException("Vous n'êtes pas autorisé à mettre à jour cet utilisateur.");
+        }
+    }
     
-      async remove(id: number): Promise<void> {
-        await this.userRepository.delete(id);
-      }
+    async remove(user, id: number): Promise<void> {
+        if (user.role === UserRoleEnum.ADMIN || user.id === Number(id)) {
+            await this.userRepository.delete(id);
+        } else {
+            throw new UnauthorizedException("Vous n'êtes pas autorisé à supprimer cet utilisateur.");
+        }
+    }
 
 
     async register(userData: UserSubscribeDto) : Promise<Partial<UserEntity>> {
