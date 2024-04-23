@@ -24,12 +24,20 @@ export class OrderController {
   ): Promise<OrderEntity> {
     return this.orderService.confirmOrder(id);
   }
+  @Patch('/finish/:id')
+  async finishOrder(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<OrderEntity> {
+    return this.orderService.finishOrder(id);
+  }
   @Get('/user')
   async getOrdersByUser(user): Promise<OrderEntity[]> {
     return this.orderService.getOrdersByUser(user);
   }
-    @Get('/service/:serviceId')
-    async getOrdersByService(@Param('serviceId', ParseIntPipe) serviceId: number): Promise<OrderEntity[]> {
-      return this.orderService.getOrdersByServiceId(serviceId);
-    }
+  @Get('/service/:serviceId')
+  async getOrdersByService(
+    @Param('serviceId', ParseIntPipe) serviceId: number,
+  ): Promise<OrderEntity[]> {
+    return this.orderService.getOrdersByServiceId(serviceId);
+  }
 }

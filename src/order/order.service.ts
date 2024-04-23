@@ -28,6 +28,14 @@ export class OrderService {
     order.status = OrderStatusEnum.CONFIRME;
     return this.orderRepository.save(order);
   }
+  async finishOrder(id: number): Promise<OrderEntity> {
+    const order = await this.orderRepository.findOne({ where: { id } });
+    if (order.status !== OrderStatusEnum.CONFIRME) {
+      throw new BadRequestException('Order is not confirmed yet');
+    }
+    order.status = OrderStatusEnum.FINIE;
+    return this.orderRepository.save(order);
+  }
   async getOrdersByUser(user): Promise<OrderEntity[]> {
     return this.orderRepository.find({
       where: { user },
