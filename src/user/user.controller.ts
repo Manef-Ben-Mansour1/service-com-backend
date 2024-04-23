@@ -1,11 +1,13 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, Param, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, Param, Patch, UsePipes } from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
 import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import AuthenticatedRequest from './interfaces/authReq.interface';
-import { User } from 'c:/Users/21654/Desktop/nestjs apps/service-com-backend/src/decorators/user.decorator';
+import { User } from 'src/decorators/user.decorator';
+import { ValidationPipe } from '@nestjs/common';
+import { UserRole } from 'src/decorators/userRole.decorator';
 
 @Controller('user')
 export class UserController {
@@ -30,6 +32,7 @@ export class UserController {
     }
 
     @Post()
+    @UsePipes(new ValidationPipe())
     register(
         @Body() userData: UserSubscribeDto,
     ): Promise<Partial<UserEntity>> {

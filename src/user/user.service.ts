@@ -70,7 +70,8 @@ export class UserService {
             lastName: user.lastName,
             email: user.email,
             gouvernorat: user.gouvernorat,
-            delegation: user.delegation            
+            delegation: user.delegation,
+            role: user.role          
         }; 
     }
 
