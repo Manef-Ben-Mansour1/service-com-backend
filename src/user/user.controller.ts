@@ -1,11 +1,14 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, Param, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, UseInterceptors, UploadedFile,Param, Patch, UnauthorizedException} from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
 import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import AuthenticatedRequest from './interfaces/authReq.interface';
-import { User } from 'c:/Users/21654/Desktop/nestjs apps/service-com-backend/src/decorators/user.decorator';
+import { User } from 'C:/Users/amirb/service-com-backend/src/decorators/user.decorator';
+import { UserRoleEnum } from './enum/userRole.enum';
+import { UserStatusEnum } from './enum/userStatus.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -30,10 +33,12 @@ export class UserController {
     }
 
     @Post()
-    register(
+    @UseInterceptors(FileInterceptor('file')) // 'file' is the name of the field in the form-data
+    async register(
         @Body() userData: UserSubscribeDto,
+        @UploadedFile() file: Express.Multer.File, // Use the UploadedFile decorator to access the file
     ): Promise<Partial<UserEntity>> {
-        return this.userService.register(userData);
+        return this.userService.register(userData, file);
     }
 
     @Patch(':id')
@@ -57,5 +62,20 @@ export class UserController {
     login(@Body() credentials: LoginCredentialsDto) {
         return this.userService.login(credentials);
     }
+
+
+    @Patch('approve/:id')
+    @UseGuards(JwtAuthGuard)
+    async approveServiceProvider(@User() user, @Param('id') id: number): Promise<void> {
+    await this.userService.approveServiceProvider(user, id);
+    }
+
+
+    @Patch('reject/:id')
+    @UseGuards(JwtAuthGuard)
+    async rejectServiceProvider(@User() user, @Param('id') id: number): Promise<void> {
+    await this.userService.rejectServiceProvider(user, id);
+    }    
+
 
 }

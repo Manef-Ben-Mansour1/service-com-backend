@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException,BadRequestException } from '@nestjs/common';
 import { UserSubscribeDto} from  './dto/user-subscribe.dto';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,10 @@ import * as bcrypt from 'bcrypt';
 import { LoginCredentialsDto} from  './dto/LoginCredentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserRoleEnum } from './enum/userRole.enum';
+import { UserStatusEnum } from './enum/userStatus.enum';
+import { createWriteStream } from 'fs';
+import { join } from 'path';
+
 
 
 @Injectable()
@@ -52,8 +56,19 @@ export class UserService {
     }
 
 
-    async register(userData: UserSubscribeDto) : Promise<Partial<UserEntity>> {
+    async register(userData: UserSubscribeDto, file: Express.Multer.File) : Promise<Partial<UserEntity>> {
         const user = this.userRepository.create({...userData})
+        if (user.role === UserRoleEnum.SERVICE_PROVIDER) {
+            if (!file) {
+                throw new BadRequestException('A file upload is required for service providers.');
+              }
+              const filePath = join(__dirname, '..', 'uploads', 'service-providers', file.originalname);
+              const fileStream = createWriteStream(filePath);
+              fileStream.write(file.buffer);
+              fileStream.end();
+              user.profileImagePath = filePath;
+            user.status = UserStatusEnum.PENDING; // Set the status to "pending" for service providers
+          }
 
         user.salt = await bcrypt.genSalt();
         user.password = await bcrypt.hash(user.password, user.salt);
@@ -70,7 +85,8 @@ export class UserService {
             lastName: user.lastName,
             email: user.email,
             gouvernorat: user.gouvernorat,
-            delegation: user.delegation            
+            delegation: user.delegation,
+            status: user.status            
         }; 
     }
 
@@ -111,4 +127,39 @@ export class UserService {
     private isAdminOrOwner(user, id?: number): boolean {
         return (user.role === UserRoleEnum.ADMIN) || (id && user.id === Number(id));
     }
+
+    async approveServiceProvider(user, id: number): Promise<void> {
+    if (!this.isAdmin(user)) {
+      throw new UnauthorizedException("Vous n'êtes pas autorisé à approuver un service provider.");
+    }
+  
+    const serviceProvider = await this.userRepository.findOne({ where: {id} });
+  
+    if (!serviceProvider || serviceProvider.role !== UserRoleEnum.SERVICE_PROVIDER || serviceProvider.status !== UserStatusEnum.PENDING) {
+      throw new NotFoundException('Service provider non trouvé ou compte non pending.');
+    }
+  
+    serviceProvider.status = UserStatusEnum.APPROVED;
+    await this.userRepository.save(serviceProvider);
+  }
+  
+   async rejectServiceProvider(user, id: number): Promise<void> {
+    if (!this.isAdmin(user)) {
+      throw new UnauthorizedException("Vous n'êtes pas autorisé à rejeter un service provider.");
+    }
+  
+    const serviceProvider = await this.userRepository.findOne({ where: {id} });
+  
+    if (!serviceProvider || serviceProvider.role !== UserRoleEnum.SERVICE_PROVIDER || serviceProvider.status !== UserStatusEnum.PENDING) {
+      throw new NotFoundException('service provider non trouvé ou compte non pending.');
+    }
+  
+    serviceProvider.status = UserStatusEnum.REJECTED;
+    await this.userRepository.save(serviceProvider);
+  }
+  
+  private isAdmin(user): boolean {
+    return user.role === UserRoleEnum.ADMIN;
+  }
+  
 }
