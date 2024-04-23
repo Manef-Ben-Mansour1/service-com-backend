@@ -10,8 +10,6 @@ export class ProfessionEntity extends TimestampEntity{
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false })
-  nome: string;
 
   @ManyToOne(() => UserEntity, user => user.professions,{eager:true})
   user: UserEntity;
