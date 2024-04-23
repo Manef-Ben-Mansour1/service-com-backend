@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, Param, Patch } from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
@@ -36,7 +36,7 @@ export class UserController {
         return this.userService.register(userData);
     }
 
-    @Put(':id')
+    @Patch(':id')
     @UseGuards(JwtAuthGuard)
     async update(
         @User() user,

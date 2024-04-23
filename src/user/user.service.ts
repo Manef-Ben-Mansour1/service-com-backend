@@ -19,24 +19,23 @@ export class UserService {
     }
 
     async findAll(user): Promise<UserEntity[]> {
-        if (user.role === UserRoleEnum.ADMIN)
+        if (this.isAdminOrOwner(user)) {
             return await this.userRepository.find();
-        throw new UnauthorizedException("Vous n'êtes pas autorisé à consulter tous les utilisateurs.");      
+        } else {
+            throw new UnauthorizedException("Vous n'êtes pas autorisé à voir tous les utilisateurs.");
+        }
     }
     
     async findOne(user, id: number): Promise<UserEntity> {
-        if ((user.role === UserRoleEnum.ADMIN) || (user.id === Number(id)))
+        if (this.isAdminOrOwner(user, id))
             return await this.userRepository.findOne({ where: { id } });
-        console.log(user.id, id);
-        console.log(user.id===id);
-        console.log(typeof(user.id));
-        console.log(typeof(id));
-        throw new UnauthorizedException("Vous n'êtes pas autorisé à consulter cet utilisateur.");
+
+        throw new UnauthorizedException("Vous n'êtes pas autorisé à voir cet utilisateur.");
     }
     
  
     async update(user, id: number, userData: Partial<UserEntity>): Promise<UserEntity> {
-        if (user.role === UserRoleEnum.ADMIN || user.id === Number(id)) {
+        if (this.isAdminOrOwner(user, id)) {
             await this.userRepository.update(id, userData);
             return await this.userRepository.findOne({ where: {id} });
         } else {
@@ -45,7 +44,7 @@ export class UserService {
     }
     
     async remove(user, id: number): Promise<void> {
-        if (user.role === UserRoleEnum.ADMIN || user.id === Number(id)) {
+        if (this.isAdminOrOwner(user, id)) {
             await this.userRepository.delete(id);
         } else {
             throw new UnauthorizedException("Vous n'êtes pas autorisé à supprimer cet utilisateur.");
@@ -109,4 +108,7 @@ export class UserService {
         }
     }
 
+    private isAdminOrOwner(user, id?: number): boolean {
+        return (user.role === UserRoleEnum.ADMIN) || (id && user.id === Number(id));
+    }
 }
