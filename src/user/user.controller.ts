@@ -34,14 +34,14 @@ export class UserController {
       return this.userService.findOne(user, id);
     }
     
-    @Post()
+    @Post('register')
     async register(
         @Body() userData: UserSubscribeDto,
     ): Promise<Partial<UserEntity>> {
         return this.userService.register(userData);
     }
 
-    @Post('service')
+    @Post('s-provider-register')
     @UseInterceptors(FileInterceptor('file')) 
     async service_register(
         @Body() userData: ServiceProviderSubscribeDto,
