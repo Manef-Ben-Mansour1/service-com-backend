@@ -74,12 +74,10 @@ export class UserService {
   async signup(user: Partial<UserEntity>): Promise<Partial<UserEntity>> {
     user.salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, user.salt);
-    console.log(user);
     try {
       await this.userRepository.save(user);
     } catch (e) {
-        console.log(e);
-      throw new ConflictException('Combinaison doit être unique');
+      throw new ConflictException('Email already exists');
     }
     return user;
   }
@@ -108,10 +106,7 @@ export class UserService {
       );
     }
     const filePath = join(
-      __dirname,
-      '..',
-      'uploads',
-      'service-providers',
+      'uploads/service-providers',
       file.originalname,
     );
     const fileStream = createWriteStream(filePath);

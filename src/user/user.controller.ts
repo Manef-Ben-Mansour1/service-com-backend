@@ -37,9 +37,11 @@ export class UserController {
     }
 
     @Post('register')
+    @UseInterceptors(FileInterceptor('file')) 
     @UsePipes(new ValidationPipe())
     async register(
         @Body() userData: UserSubscribeDto,
+        @UploadedFile() file: MulterFile, 
     ): Promise<Partial<UserEntity>> {
         return this.userService.register(userData);
     }
