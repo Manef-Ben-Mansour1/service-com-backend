@@ -35,8 +35,7 @@ export class UserEntity extends TimestampEntity{
   delegation: string;
 
 
-  @Column({
-  })
+  @Column({nullable: true})
   profileImagePath: string;
 
   @Column({
