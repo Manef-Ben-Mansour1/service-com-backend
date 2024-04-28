@@ -6,7 +6,7 @@ import { UserEntity } from './entities/user.entity';
 import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import AuthenticatedRequest from './interfaces/authReq.interface';
-import { User } from 'C:/Users/amirb/service-com-backend/src/decorators/user.decorator';
+import { User } from '../decorators/user.decorator';
 import { UserRoleEnum } from './enum/userRole.enum';
 import { UserStatusEnum } from './enum/userStatus.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
