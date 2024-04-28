@@ -25,7 +25,7 @@ dotenv.config();
 
 @Module({
   imports: [MulterModule.register({
-    dest: './uploads',}),
+    dest: './uploads'}),
      TypeOrmModule.forRoot({
     type: "mysql",
     host: process.env.DB_HOST,

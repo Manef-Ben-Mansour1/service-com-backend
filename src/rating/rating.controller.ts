@@ -15,6 +15,7 @@ import {
   export class RatingController {
     constructor(private readonly ratingService: RatingService) {}
   
+    /*
     @Post()
     create(@Body() createRatingDto: CreateRatingDto) {
       return this.ratingService.create(createRatingDto);
@@ -39,5 +40,6 @@ import {
     remove(@Param('id') id: string) {
       return this.ratingService.remove(+id);
     }
+    */
   }
   

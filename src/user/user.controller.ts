@@ -13,6 +13,7 @@ import { UserRoleEnum } from './enum/userRole.enum';
 import { UserStatusEnum } from './enum/userStatus.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterFile } from './interfaces/multer-file.interface';
+import { profile } from 'console';
 
 @Controller('user')
 export class UserController {
@@ -37,22 +38,26 @@ export class UserController {
     }
 
     @Post('register')
-    @UseInterceptors(FileInterceptor('file')) 
     @UsePipes(new ValidationPipe())
+    @UseInterceptors(FileInterceptor('profileImage'))
     async register(
         @Body() userData: UserSubscribeDto,
-        @UploadedFile() file: MulterFile, 
+        @UploadedFile() profileImage: MulterFile,
     ): Promise<Partial<UserEntity>> {
-        return this.userService.register(userData);
+        return this.userService.register(userData,profileImage);
     }
 
     @Post('s-provider-register')
-    @UseInterceptors(FileInterceptor('file')) 
+    @UseInterceptors(
+        FileInterceptor('document'),
+        FileInterceptor('profileImage')
+    )    
     async service_register(
         @Body() userData: ServiceProviderSubscribeDto,
-        @UploadedFile() file: MulterFile, 
+        @UploadedFile() document: MulterFile,
+        @UploadedFile() profileImage: MulterFile,
     ): Promise<Partial<UserEntity>> {
-        return this.userService.service_register(userData, file);
+        return this.userService.service_register(userData,document, profileImage);
     }
 
 

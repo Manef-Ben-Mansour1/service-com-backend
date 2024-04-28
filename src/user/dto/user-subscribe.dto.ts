@@ -19,13 +19,13 @@ export class UserSubscribeDto {
     @IsNotEmpty()
     email: string;
 
+    @IsOptional()
+    profileImagePath: string
+
     @IsNotEmpty()
     password: string; 
 
     @IsEnum(UserRoleEnum)
     role: UserRoleEnum;
-
-    @IsOptional()
-    profileImagePath : string
 
 }
