@@ -1,5 +1,5 @@
-import { IsEmail, IsNotEmpty, IsEnum} from "class-validator";
 import { UserRoleEnum } from "../enum/userRole.enum";
+import { IsEmail, IsNotEmpty, IsEnum, IsOptional, isNotEmpty } from "class-validator";
 
 export class UserSubscribeDto {
 
@@ -24,4 +24,8 @@ export class UserSubscribeDto {
 
     @IsEnum(UserRoleEnum)
     role: UserRoleEnum;
+
+    @IsOptional()
+    profileImagePath : string
+
 }

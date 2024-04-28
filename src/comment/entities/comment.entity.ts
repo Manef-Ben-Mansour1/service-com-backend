@@ -17,9 +17,6 @@ export class CommentEntity extends TimestampEntity{
   })
   content: string;
 
-  @ManyToOne(() => CommentEntity, { onDelete: 'CASCADE' })
-  parentComment: CommentEntity;
-
   @ManyToOne (()=>UserEntity,  {eager:true, nullable:false})
   user: UserEntity;
 

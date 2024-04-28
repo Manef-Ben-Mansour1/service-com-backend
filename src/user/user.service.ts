@@ -1,115 +1,235 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { UserSubscribeDto} from  './dto/user-subscribe.dto';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
+import { UserSubscribeDto } from './dto/user-subscribe.dto';
+import { ServiceProviderSubscribeDto } from './dto/serviceprovider-subscribe.dto';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { LoginCredentialsDto} from  './dto/LoginCredentials.dto';
+import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserRoleEnum } from './enum/userRole.enum';
-
+import { UserStatusEnum } from './enum/userStatus.enum';
+import { createWriteStream } from 'fs';
+import { join } from 'path';
+import { MulterFile } from './interfaces/multer-file.interface';
 
 @Injectable()
 export class UserService {
-    constructor(
-        @InjectRepository(UserEntity)
-        private userRepository:  Repository<UserEntity>,
-        private jwtService: JwtService
-    )   {
+  constructor(
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
+    private jwtService: JwtService,
+  ) {}
+
+  async findAll(user): Promise<UserEntity[]> {
+    if (this.isAdminOrOwner(user)) {
+      return await this.userRepository.find();
+    } else {
+      throw new UnauthorizedException(
+        "Vous n'êtes pas autorisé à voir tous les utilisateurs.",
+      );
+    }
+  }
+
+  async findOne(user, id: number): Promise<UserEntity> {
+    if (this.isAdminOrOwner(user, id))
+      return await this.userRepository.findOne({ where: { id } });
+
+    throw new UnauthorizedException(
+      "Vous n'êtes pas autorisé à voir cet utilisateur.",
+    );
+  }
+
+  async update(
+    user,
+    id: number,
+    userData: Partial<UserEntity>,
+  ): Promise<UserEntity> {
+    if (this.isAdminOrOwner(user, id)) {
+      await this.userRepository.update(id, userData);
+      return await this.userRepository.findOne({ where: { id } });
+    } else {
+      throw new UnauthorizedException(
+        "Vous n'êtes pas autorisé à mettre à jour cet utilisateur.",
+      );
+    }
+  }
+
+  async remove(user, id: number): Promise<void> {
+    if (this.isAdminOrOwner(user, id)) {
+      await this.userRepository.delete(id);
+    } else {
+      throw new UnauthorizedException(
+        "Vous n'êtes pas autorisé à supprimer cet utilisateur.",
+      );
+    }
+  }
+
+  async signup(user: Partial<UserEntity>): Promise<Partial<UserEntity>> {
+    user.salt = await bcrypt.genSalt();
+    user.password = await bcrypt.hash(user.password, user.salt);
+    console.log(user);
+    try {
+      await this.userRepository.save(user);
+    } catch (e) {
+        console.log(e);
+      throw new ConflictException('Combinaison doit être unique');
+    }
+    return user;
+  }
+
+  async register(userData: UserSubscribeDto): Promise<Partial<UserEntity>> {
+    const user = this.userRepository.create({ ...userData });
+    await this.signup(user);
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      gouvernorat: user.gouvernorat,
+      delegation: user.delegation,
+    };
+  }
+
+  async service_register(
+    userData: ServiceProviderSubscribeDto,
+    file: MulterFile,
+  ): Promise<Partial<UserEntity>> {
+    const user = this.userRepository.create({ ...userData });
+    if (!file) {
+      throw new BadRequestException(
+        'A file upload is required for service providers.',
+      );
+    }
+    const filePath = join(
+      __dirname,
+      '..',
+      'uploads',
+      'service-providers',
+      file.originalname,
+    );
+    const fileStream = createWriteStream(filePath);
+    fileStream.write(file.buffer);
+    fileStream.end();
+    user.profileImagePath = filePath;
+    user.role = UserRoleEnum.SERVICE_PROVIDER;
+    user.status = UserStatusEnum.PENDING;
+    await this.signup(user);
+
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      profileImagePath: user.profileImagePath,
+    };
+  }
+
+  async login(credentials: LoginCredentialsDto) {
+    const { email, password } = credentials;
+
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email=:email', { email })
+      .getOne();
+
+    if (!user) {
+      throw new NotFoundException('email erroné');
     }
 
-    async findAll(user): Promise<UserEntity[]> {
-        if (this.isAdminOrOwner(user)) {
-            return await this.userRepository.find();
-        } else {
-            throw new UnauthorizedException("Vous n'êtes pas autorisé à voir tous les utilisateurs.");
-        }
+    const hashedPassword = await bcrypt.hash(password, user.salt);
+    if (hashedPassword === user.password) {
+      const payload = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        gouvernorat: user.gouvernorat,
+        delegation: user.delegation,
+      };
+      const jwt = await this.jwtService.sign(payload);
+      return {
+        access_token: jwt,
+      };
+    } else {
+      throw new NotFoundException('password erroné');
     }
-    
-    async findOne(user, id: number): Promise<UserEntity> {
-        if (this.isAdminOrOwner(user, id))
-            return await this.userRepository.findOne({ where: { id } });
+  }
 
-        throw new UnauthorizedException("Vous n'êtes pas autorisé à voir cet utilisateur.");
-    }
-    
- 
-    async update(user, id: number, userData: Partial<UserEntity>): Promise<UserEntity> {
-        if (this.isAdminOrOwner(user, id)) {
-            await this.userRepository.update(id, userData);
-            return await this.userRepository.findOne({ where: {id} });
-        } else {
-            throw new UnauthorizedException("Vous n'êtes pas autorisé à mettre à jour cet utilisateur.");
-        }
-    }
-    
-    async remove(user, id: number): Promise<void> {
-        if (this.isAdminOrOwner(user, id)) {
-            await this.userRepository.delete(id);
-        } else {
-            throw new UnauthorizedException("Vous n'êtes pas autorisé à supprimer cet utilisateur.");
-        }
+  private isAdminOrOwner(user, id?: number): boolean {
+    return user.role === UserRoleEnum.ADMIN || (id && user.id === Number(id));
+  }
+
+  async approveServiceProvider(user, id: number): Promise<Partial<UserEntity>> {
+    if (!this.isAdmin(user)) {
+      throw new UnauthorizedException(
+        "Vous n'êtes pas autorisé à approuver un service provider.",
+      );
     }
 
+    const serviceProvider = await this.userRepository.findOne({
+      where: { id },
+    });
 
-    async register(userData: UserSubscribeDto) : Promise<Partial<UserEntity>> {
-        const user = this.userRepository.create({...userData})
-
-        user.salt = await bcrypt.genSalt();
-        user.password = await bcrypt.hash(user.password, user.salt);
-        try{
-            await this.userRepository.save(user);
-
-        } catch (e) {
-            throw new ConflictException('Combinaison doit être unique');
-        }
-
-        return {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            gouvernorat: user.gouvernorat,
-            delegation: user.delegation,
-            role: user.role          
-        }; 
+    if (
+      !serviceProvider ||
+      serviceProvider.role !== UserRoleEnum.SERVICE_PROVIDER ||
+      serviceProvider.status !== UserStatusEnum.PENDING
+    ) {
+      throw new NotFoundException(
+        'Service provider non trouvé ou compte non pending.',
+      );
     }
 
-    async login(credentials: LoginCredentialsDto) {
-        const { email, password } = credentials;
+    serviceProvider.status = UserStatusEnum.APPROVED;
+    await this.userRepository.save(serviceProvider);
 
-        const user = await this.userRepository.createQueryBuilder("user")
-            .where("user.email=:email",
-                {email}
-            )
-            .getOne();
-        
-            if (!user) {
-                throw new NotFoundException("email erroné");
-            }
-        
-        const hashedPassword= await bcrypt.hash(password, user.salt);
-        if (hashedPassword===user.password) {
-            const payload = {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                gouvernorat: user.gouvernorat,
-                delegation: user.delegation            
-            }
-            const jwt= await this.jwtService.sign(payload);
-            return {
-                "access_token": jwt
-            };
-        }
+    return {
+      id: serviceProvider.id,
+      firstName: serviceProvider.firstName,
+      status: serviceProvider.status,
+    };
+  }
 
-        else {
-            throw new NotFoundException("password erroné");
-        }
+  async rejectServiceProvider(user, id: number): Promise<Partial<UserEntity>> {
+    if (!this.isAdmin(user)) {
+      throw new UnauthorizedException(
+        "Vous n'êtes pas autorisé à rejeter un service provider.",
+      );
     }
 
-    private isAdminOrOwner(user, id?: number): boolean {
-        return (user.role === UserRoleEnum.ADMIN) || (id && user.id === Number(id));
+    const serviceProvider = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (
+      !serviceProvider ||
+      serviceProvider.role !== UserRoleEnum.SERVICE_PROVIDER ||
+      serviceProvider.status !== UserStatusEnum.PENDING
+    ) {
+      throw new NotFoundException(
+        'service provider non trouvé ou compte non pending.',
+      );
     }
+
+    serviceProvider.status = UserStatusEnum.REJECTED;
+    await this.userRepository.save(serviceProvider);
+    return {
+      id: serviceProvider.id,
+      firstName: serviceProvider.firstName,
+      status: serviceProvider.status,
+    };
+  }
+
+  private isAdmin(user): boolean {
+    return user.role === UserRoleEnum.ADMIN;
+  }
 }
