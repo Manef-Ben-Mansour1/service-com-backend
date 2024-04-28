@@ -19,7 +19,7 @@ export class UserSubscribeDto {
     email: string;
 
     @IsOptional()
-    profileImagePath : string
+    profileImagePath: string
 
     @IsNotEmpty()
     password: string; 

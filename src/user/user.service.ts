@@ -18,6 +18,7 @@ import { UserStatusEnum } from './enum/userStatus.enum';
 import { createWriteStream } from 'fs';
 import { join } from 'path';
 import { MulterFile } from './interfaces/multer-file.interface';
+import { error, profile } from 'console';
 
 @Injectable()
 export class UserService {
@@ -71,22 +72,41 @@ export class UserService {
     }
   }
 
-  async signup(user: Partial<UserEntity>): Promise<Partial<UserEntity>> {
+  async signup(
+    user: Partial<UserEntity>,
+    profileImage: MulterFile,
+  ): Promise<void> {
+    console.log('before salt', user);
     user.salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, user.salt);
+    if (profileImage) {
+      const filePath1 = join(
+        __dirname,
+        '..',
+        'uploads',
+        'profile-images',
+        profileImage.originalname,
+      );
+      const fileStream1 = createWriteStream(filePath1);
+      fileStream1.write(profileImage.buffer);
+      fileStream1.end();
+      user.profileImagePath = filePath1;
+    }
     console.log(user);
     try {
       await this.userRepository.save(user);
     } catch (e) {
-        console.log(e);
+      console.log(e);
       throw new ConflictException('Combinaison doit être unique');
     }
-    return user;
   }
 
-  async register(userData: UserSubscribeDto): Promise<Partial<UserEntity>> {
+  async register(
+    userData: UserSubscribeDto,
+    profileImage: MulterFile,
+  ): Promise<Partial<UserEntity>> {
     const user = this.userRepository.create({ ...userData });
-    await this.signup(user);
+    await this.signup(user, profileImage);
     return {
       id: user.id,
       firstName: user.firstName,
@@ -99,38 +119,47 @@ export class UserService {
 
   async service_register(
     userData: ServiceProviderSubscribeDto,
-    file: MulterFile,
+    document: MulterFile,
+    profileImage: MulterFile,
   ): Promise<Partial<UserEntity>> {
     const user = this.userRepository.create({ ...userData });
-    if (!file) {
+    if (!document) {
       throw new BadRequestException(
         'A file upload is required for service providers.',
       );
     }
-    const filePath = join(
-      __dirname,
-      '..',
-      'uploads',
-      'service-providers',
-      file.originalname,
-    );
-    const fileStream = createWriteStream(filePath);
-    fileStream.write(file.buffer);
-    fileStream.end();
-    user.profileImagePath = filePath;
-    user.role = UserRoleEnum.SERVICE_PROVIDER;
-    user.status = UserStatusEnum.PENDING;
-    await this.signup(user);
 
-    return {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      profileImagePath: user.profileImagePath,
-    };
+    try {
+      const filePath = join(
+        __dirname,
+        '..',
+        'uploads',
+        'service-providers',
+        document.originalname,
+      );
+      const fileStream = createWriteStream(filePath);
+      fileStream.write(document.buffer);
+      fileStream.end();
+      user.document = filePath;
+
+      user.role = UserRoleEnum.SERVICE_PROVIDER;
+      user.status = UserStatusEnum.PENDING;
+
+      await this.signup(user, profileImage);
+
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        document: user.document,
+        profileImagePath: user.profileImagePath,
+      };
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async login(credentials: LoginCredentialsDto) {

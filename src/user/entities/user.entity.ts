@@ -38,6 +38,10 @@ export class UserEntity extends TimestampEntity{
   @Column({nullable: true})
   profileImagePath: string;
 
+  @Column({nullable: true})
+  document: string;
+
+
   @Column({
     type: "enum",
     enum: UserRoleEnum,
