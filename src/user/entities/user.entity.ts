@@ -47,7 +47,7 @@ export class UserEntity extends TimestampEntity{
   role: UserRoleEnum;
 
   @Column({
-    nullable: true, // Status is nullable for admins and normal users
+    nullable: true, 
   })
   status: UserStatusEnum;
 

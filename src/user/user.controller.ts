@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, UseInterceptors, UploadedFile,Param, Patch, UnauthorizedException} from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
+import { ServiceProviderSubscribeDto} from  './dto/serviceprovider-subscribe.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
 import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
@@ -32,15 +33,23 @@ export class UserController {
         @Param('id') id: number): Promise<UserEntity> {
       return this.userService.findOne(user, id);
     }
-
+    
     @Post()
-    @UseInterceptors(FileInterceptor('file')) // 'file' is the name of the field in the form-data
     async register(
         @Body() userData: UserSubscribeDto,
-        @UploadedFile() file: MulterFile, // Use the UploadedFile decorator to access the file
     ): Promise<Partial<UserEntity>> {
-        return this.userService.register(userData, file);
+        return this.userService.register(userData);
     }
+
+    @Post('service')
+    @UseInterceptors(FileInterceptor('file')) 
+    async service_register(
+        @Body() userData: ServiceProviderSubscribeDto,
+        @UploadedFile() file: MulterFile, 
+    ): Promise<Partial<UserEntity>> {
+        return this.userService.service_register(userData, file);
+    }
+
 
     @Patch(':id')
     @UseGuards(JwtAuthGuard)
@@ -67,15 +76,15 @@ export class UserController {
 
     @Patch('approve/:id')
     @UseGuards(JwtAuthGuard)
-    async approveServiceProvider(@User() user, @Param('id') id: number): Promise<void> {
-    await this.userService.approveServiceProvider(user, id);
+    async approveServiceProvider(@User() user, @Param('id') id: number): Promise<Partial<UserEntity>> {
+    return this.userService.approveServiceProvider(user, id);
     }
 
 
     @Patch('reject/:id')
     @UseGuards(JwtAuthGuard)
-    async rejectServiceProvider(@User() user, @Param('id') id: number): Promise<void> {
-    await this.userService.rejectServiceProvider(user, id);
+    async rejectServiceProvider(@User() user, @Param('id') id: number): Promise<Partial<UserEntity>> {
+    return this.userService.rejectServiceProvider(user, id);
     }    
 
 

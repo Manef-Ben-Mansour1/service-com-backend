@@ -1,6 +1,6 @@
-import { IsEmail, IsNotEmpty, isNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty } from "class-validator";
 
-export class UserSubscribeDto {
+export class ServiceProviderSubscribeDto {
 
     @IsNotEmpty()
     firstName: string;
@@ -21,5 +21,6 @@ export class UserSubscribeDto {
     @IsNotEmpty()
     password: string; 
 
-    
+    @IsNotEmpty()
+    profileImagePath: string;
 }

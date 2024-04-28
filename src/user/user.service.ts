@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, NotFoundException, UnauthorizedException,BadRequestException } from '@nestjs/common';
 import { UserSubscribeDto} from  './dto/user-subscribe.dto';
+import { ServiceProviderSubscribeDto} from  './dto/serviceprovider-subscribe.dto';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -56,10 +57,34 @@ export class UserService {
         }
     }
 
+    async signup(user:Partial<UserEntity>): Promise<Partial<UserEntity>> {
+        user.salt = await bcrypt.genSalt();
+        user.password = await bcrypt.hash(user.password, user.salt);
+        try{
+            await this.userRepository.save(user);
+    
+        } catch (e) {
+            throw new ConflictException('Combinaison doit être unique');
+        }
+        return (user);
+    }
+    
 
-    async register(userData: UserSubscribeDto, file: MulterFile) : Promise<Partial<UserEntity>> {
+    async register(userData: UserSubscribeDto) : Promise<Partial<UserEntity>> {
+        const user = this.userRepository.create({...userData});
+        await this.signup(user);
+        return {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            gouvernorat: user.gouvernorat,
+            delegation: user.delegation
+        };
+    }
+
+    async service_register(userData: ServiceProviderSubscribeDto, file: MulterFile) : Promise<Partial<UserEntity>> {
         const user = this.userRepository.create({...userData})
-        if (user.role === UserRoleEnum.SERVICE_PROVIDER) {
             if (!file) {
                 throw new BadRequestException('A file upload is required for service providers.');
               }
@@ -68,27 +93,20 @@ export class UserService {
               fileStream.write(file.buffer);
               fileStream.end();
               user.profileImagePath = filePath;
-            user.status = UserStatusEnum.PENDING; 
-          }
+              user.role=UserRoleEnum.SERVICE_PROVIDER;
+              user.status = UserStatusEnum.PENDING; 
+        await this.signup(user);
 
-        user.salt = await bcrypt.genSalt();
-        user.password = await bcrypt.hash(user.password, user.salt);
-        try{
-            await this.userRepository.save(user);
-
-        } catch (e) {
-            throw new ConflictException('Combinaison doit être unique');
-        }
-
+        
         return {
             id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            gouvernorat: user.gouvernorat,
-            delegation: user.delegation,
-            status: user.status            
-        }; 
+            role: user.role,
+            status:user.status,
+            profileImagePath:user.profileImagePath
+          };
     }
 
     async login(credentials: LoginCredentialsDto) {
@@ -129,7 +147,8 @@ export class UserService {
         return (user.role === UserRoleEnum.ADMIN) || (id && user.id === Number(id));
     }
 
-    async approveServiceProvider(user, id: number): Promise<void> {
+    
+    async approveServiceProvider(user, id: number): Promise<Partial<UserEntity>> {
     if (!this.isAdmin(user)) {
       throw new UnauthorizedException("Vous n'êtes pas autorisé à approuver un service provider.");
     }
@@ -142,9 +161,15 @@ export class UserService {
   
     serviceProvider.status = UserStatusEnum.APPROVED;
     await this.userRepository.save(serviceProvider);
+
+    return {
+        id:serviceProvider.id,
+        firstName: serviceProvider.firstName,
+        status:serviceProvider.status
+    };
   }
   
-   async rejectServiceProvider(user, id: number): Promise<void> {
+   async rejectServiceProvider(user, id: number): Promise<Partial<UserEntity>> {
     if (!this.isAdmin(user)) {
       throw new UnauthorizedException("Vous n'êtes pas autorisé à rejeter un service provider.");
     }
@@ -157,8 +182,15 @@ export class UserService {
   
     serviceProvider.status = UserStatusEnum.REJECTED;
     await this.userRepository.save(serviceProvider);
+    return {
+        id:serviceProvider.id,
+        firstName: serviceProvider.firstName,
+        status:serviceProvider.status
+    };
   }
-  
+
+
+
   private isAdmin(user): boolean {
     return user.role === UserRoleEnum.ADMIN;
   }
