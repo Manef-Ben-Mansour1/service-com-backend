@@ -233,8 +233,14 @@ export class UserService {
       where: { id },
     });
 
+
+
     if (!userToUpdate) {
       throw new NotFoundException('Utilisateur non trouvé.');
+    }
+
+    if(userToUpdate.role!=UserRoleEnum.SERVICE_PROVIDER){
+      throw new UnauthorizedException('Vous n\'êtes pas autorisé à effectuer cette action.Il faut etre prestataire de service');
     }
 
     if (!cv) {
