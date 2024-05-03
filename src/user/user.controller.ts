@@ -47,6 +47,7 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
+
   @Post('register')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('profileImage'))
@@ -59,6 +60,7 @@ export class UserController {
     return this.userService.register(userData, profileImage);
   }
 
+
   @Post('s-provider-register')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('profileImage'))
@@ -68,6 +70,7 @@ export class UserController {
   ): Promise<Partial<UserEntity>> {
     return this.userService.service_register(userData, profileImage);
   }
+
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
@@ -89,6 +92,19 @@ export class UserController {
   login(@Body() credentials: LoginCredentialsDto) {
     return this.userService.login(credentials);
   }
+
+    @Patch("cv")
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(FileInterceptor('cv'))
+    async uploadCv(
+      @User() user,
+      @UploadedFile() cv: MulterFile
+    ): Promise<Partial<UserEntity>> {
+        return this.userService.uploadCv(user.id, cv);
+    }
+
+
+
 
   @Patch('approve/:id')
   @UseGuards(JwtAuthGuard, AdminGuard)
