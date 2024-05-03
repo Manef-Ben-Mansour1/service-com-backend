@@ -21,6 +21,7 @@ import { MulterFile } from './interfaces/multer-file.interface';
 import { mkdirSync, existsSync } from 'fs';
 import { error, profile } from 'console';
 import * as mime from 'mime-types';
+import { use } from 'passport';
 
 
 @Injectable()
@@ -32,48 +33,21 @@ export class UserService {
   ) {
   }
 
-  async findAll(user): Promise<UserEntity[]> {
-    if (this.isAdminOrOwner(user)) {
-      return await this.userRepository.find();
-    } else {
-      throw new UnauthorizedException(
-        "Vous n'êtes pas autorisé à voir tous les utilisateurs.",
-      );
-    }
+  async findAll(): Promise<UserEntity[]> {
+    return await this.userRepository.find();
   }
 
-  async findOne(user, id: number): Promise<UserEntity> {
-    if (this.isAdminOrOwner(user, id))
-      return await this.userRepository.findOne({ where: { id } });
-
-    throw new UnauthorizedException(
-      "Vous n'êtes pas autorisé à voir cet utilisateur.",
-    );
+  async findOne(id: number): Promise<UserEntity> {
+    return await this.userRepository.findOne({ where: { id } });
   }
 
-  async update(
-    user,
-    id: number,
-    userData: Partial<UserEntity>,
-  ): Promise<UserEntity> {
-    if (this.isAdminOrOwner(user, id)) {
-      await this.userRepository.update(id, userData);
-      return await this.userRepository.findOne({ where: { id } });
-    } else {
-      throw new UnauthorizedException(
-        "Vous n'êtes pas autorisé à mettre à jour cet utilisateur.",
-      );
-    }
+  async update(id: number, userData: Partial<UserEntity>): Promise<UserEntity> {
+    await this.userRepository.update(id, userData);
+    return await this.userRepository.findOne({ where: { id } });
   }
 
-  async remove(user, id: number): Promise<void> {
-    if (this.isAdminOrOwner(user, id)) {
-      await this.userRepository.delete(id);
-    } else {
-      throw new UnauthorizedException(
-        "Vous n'êtes pas autorisé à supprimer cet utilisateur.",
-      );
-    }
+  async remove(id: number): Promise<void> {
+    await this.userRepository.delete(id);
   }
 
   async signup(user: Partial<UserEntity>, profileImage: MulterFile): Promise<void> {
@@ -82,6 +56,7 @@ export class UserService {
 
     if (profileImage) {
       const fileType = mime.lookup(profileImage.originalname);
+
 
       if (fileType && fileType.startsWith('image/')) {
         // Sanitize the original file name
@@ -99,14 +74,26 @@ export class UserService {
         fileStream.end();
         user.profileImagePath = filePath;
       } else {
+
         throw new BadRequestException('Veuillez télécharger une image');
       }
+
+      const filePath1 = join(
+        __dirname,
+        '..',
+        'uploads',
+        'profile-images',
+        Date.now() + profileImage.originalname,
+      );
+      const fileStream1 = createWriteStream(filePath1);
+      fileStream1.write(profileImage.buffer);
+      fileStream1.end();
+      user.profileImagePath = filePath1;
     }
 
     try {
       await this.userRepository.save(user);
     } catch (e) {
-      console.log(e);
       throw new ConflictException('Combinaison doit être unique');
     }
   }
@@ -124,6 +111,7 @@ export class UserService {
       email: user.email,
       gouvernorat: user.gouvernorat,
       delegation: user.delegation,
+      profileImagePath: user.profileImagePath,
     };
   }
 
@@ -138,6 +126,7 @@ export class UserService {
     user.status = UserStatusEnum.PENDING;
     await this.signup(user, profileImage);
 
+
     return {
       id: user.id,
       firstName: user.firstName,
@@ -148,6 +137,7 @@ export class UserService {
       profileImagePath: user.profileImagePath,
 
     }
+
   }
 
   async login(credentials: LoginCredentialsDto) {
@@ -185,13 +175,7 @@ export class UserService {
     return user.role === UserRoleEnum.ADMIN || (id && user.id === Number(id));
   }
 
-  async approveServiceProvider(user, id: number): Promise<Partial<UserEntity>> {
-    if (!this.isAdmin(user)) {
-      throw new UnauthorizedException(
-        "Vous n'êtes pas autorisé à approuver un service provider.",
-      );
-    }
-
+  async approveServiceProvider(id: number): Promise<Partial<UserEntity>> {
     const serviceProvider = await this.userRepository.findOne({
       where: { id },
     });
@@ -216,13 +200,7 @@ export class UserService {
     };
   }
 
-  async rejectServiceProvider(user, id: number): Promise<Partial<UserEntity>> {
-    if (!this.isAdmin(user)) {
-      throw new UnauthorizedException(
-        "Vous n'êtes pas autorisé à rejeter un service provider.",
-      );
-    }
-
+  async rejectServiceProvider(id: number): Promise<Partial<UserEntity>> {
     const serviceProvider = await this.userRepository.findOne({
       where: { id },
     });
