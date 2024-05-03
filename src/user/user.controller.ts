@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Post,
@@ -14,6 +15,7 @@ import {
   Patch,
   UnauthorizedException,
 } from '@nestjs/common';
+
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { ServiceProviderSubscribeDto } from './dto/serviceprovider-subscribe.dto';
 import { UserService } from './user.service';
@@ -21,6 +23,7 @@ import { UserEntity } from './entities/user.entity';
 import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import AuthenticatedRequest from './interfaces/authReq.interface';
+
 import { User } from '../decorators/user.decorator';
 import { UserRoleEnum } from './enum/userRole.enum';
 import { UserStatusEnum } from './enum/userStatus.enum';
@@ -30,6 +33,7 @@ import { profile } from 'console';
 import { response } from 'express';
 import { AdminOrSelfGuard } from './guards/admin-or-self.guard';
 import { AdminGuard } from './guards/admin.guard';
+
 
 @Controller('user')
 export class UserController {
@@ -46,6 +50,7 @@ export class UserController {
   async findOne(@Param('id') id: number): Promise<UserEntity> {
     return this.userService.findOne(+id);
   }
+
 
 
   @Post('register')
@@ -70,6 +75,7 @@ export class UserController {
   ): Promise<Partial<UserEntity>> {
     return this.userService.service_register(userData, profileImage);
   }
+
 
 
 
@@ -124,3 +130,4 @@ export class UserController {
     return this.userService.login(credentials);
   }
 }
+

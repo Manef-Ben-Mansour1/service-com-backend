@@ -205,6 +205,7 @@ export class UserService {
       where: { id },
     });
 
+
     if (
       !serviceProvider ||
       serviceProvider.role !== UserRoleEnum.SERVICE_PROVIDER ||
@@ -213,6 +214,7 @@ export class UserService {
       throw new NotFoundException(
         'service provider non trouvé ou compte non pending.',
       );
+
     }
 
     serviceProvider.status = UserStatusEnum.REJECTED;

@@ -11,7 +11,7 @@ export class ProfessionEntity extends TimestampEntity{
   id: number;
 
 
-  @ManyToOne(() => UserEntity, user => user.professions,{eager:true,nullable:false})
+  @ManyToOne(() => UserEntity, user => user.professions,{eager:true})
   user: UserEntity;
 
   @ManyToOne(() => CategoryEntity, category => category.professions,{eager:true,nullable:false})
