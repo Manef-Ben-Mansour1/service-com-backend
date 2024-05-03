@@ -27,14 +27,7 @@ export class UserController {
         return this.userService.findAll(user);
     }
 
-    @Get(':id')
-    @UseGuards(JwtAuthGuard)
-    async findOne(
-        @User() user,
-        @Param('id') id: number): Promise<UserEntity> {
-      return this.userService.findOne(user, id);
-    }
-    
+
     @Post('register')
     @UseInterceptors(FileInterceptor('profileImage'))
     async register(
@@ -55,23 +48,18 @@ export class UserController {
         return this.userService.service_register(userData, profileImage);
     }
 
-
-    @Patch(':id')
+    @Patch("cv")
     @UseGuards(JwtAuthGuard)
-    async update(
-        @User() user,
-        @Param('id') id: number, 
-        @Body() userData: Partial<UserEntity>): Promise<UserEntity> {
-      return this.userService.update(user, id, userData);
+    @UseInterceptors(FileInterceptor('cv'))
+    async uploadCv(
+      @User() user,
+      @UploadedFile() cv: MulterFile
+    ): Promise<Partial<UserEntity>> {
+        return this.userService.uploadCv(user.id, cv);
     }
 
-    @Delete(':id')
-    @UseGuards(JwtAuthGuard)
-    async remove(
-        @User() user,
-        @Param('id') id: number): Promise<void> {
-      return this.userService.remove(user, id);
-    }
+
+
 
     @Post('login')
     login(@Body() credentials: LoginCredentialsDto) {
@@ -90,7 +78,35 @@ export class UserController {
     @UseGuards(JwtAuthGuard)
     async rejectServiceProvider(@User() user, @Param('id') id: number): Promise<Partial<UserEntity>> {
     return this.userService.rejectServiceProvider(user, id);
-    }    
+    }
+
+    @Get(':id')
+    @UseGuards(JwtAuthGuard)
+    async findOne(
+      @User() user,
+      @Param('id') id: number): Promise<UserEntity> {
+        return this.userService.findOne(user, id);
+    }
+
+
+    @Patch(':id')
+    @UseGuards(JwtAuthGuard)
+    async update(
+      @User() user,
+      @Param('id') id: number,
+      @Body() userData: Partial<UserEntity>): Promise<UserEntity> {
+        return this.userService.update(user, id, userData);
+    }
+
+    @Delete(':id')
+    @UseGuards(JwtAuthGuard)
+    async remove(
+      @User() user,
+      @Param('id') id: number): Promise<void> {
+        return this.userService.remove(user, id);
+    }
+
+
 
 
 }

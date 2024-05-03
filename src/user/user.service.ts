@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  BadRequestException,
+  BadRequestException, InternalServerErrorException,
 } from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { ServiceProviderSubscribeDto } from './dto/serviceprovider-subscribe.dto';
@@ -15,11 +15,13 @@ import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserRoleEnum } from './enum/userRole.enum';
 import { UserStatusEnum } from './enum/userStatus.enum';
-import { createWriteStream } from 'fs';
+import fs, { createWriteStream } from 'fs';
 import { join } from 'path';
 import { MulterFile } from './interfaces/multer-file.interface';
+import { mkdirSync, existsSync } from 'fs';
 import { error, profile } from 'console';
 import * as mime from 'mime-types';
+
 
 @Injectable()
 export class UserService {
@@ -27,7 +29,8 @@ export class UserService {
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     private jwtService: JwtService,
-  ) {}
+  ) {
+  }
 
   async findAll(user): Promise<UserEntity[]> {
     if (this.isAdminOrOwner(user)) {
@@ -73,30 +76,33 @@ export class UserService {
     }
   }
 
-  async signup(
-    user: Partial<UserEntity>,
-    profileImage: MulterFile,
-  ): Promise<void> {
+  async signup(user: Partial<UserEntity>, profileImage: MulterFile): Promise<void> {
     user.salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, user.salt);
+
     if (profileImage) {
       const fileType = mime.lookup(profileImage.originalname);
+
       if (fileType && fileType.startsWith('image/')) {
-        const filePath1 = join(
-          __dirname,
-          '..',
-          'uploads',
-          'profile-images',
-          Date.now() + profileImage.originalname,
-        );
-        const fileStream1 = createWriteStream(filePath1);
-        fileStream1.write(profileImage.buffer);
-        fileStream1.end();
-        user.profileImagePath = filePath1;
+        // Sanitize the original file name
+        const sanitizedFileName = profileImage.originalname.replace(/[^a-z0-9.]/gi, '_');
+
+        const uploadsDir = join(__dirname, '..', 'uploads', 'profile-images');
+        // Ensure the uploads directory exists
+        if (!existsSync(uploadsDir)) {
+          mkdirSync(uploadsDir, { recursive: true });
+        }
+        const filePath = join(uploadsDir, Date.now() + sanitizedFileName);
+        const fileStream = createWriteStream(filePath);
+
+        fileStream.write(profileImage.buffer);
+        fileStream.end();
+        user.profileImagePath = filePath;
       } else {
         throw new BadRequestException('Veuillez télécharger une image');
       }
     }
+
     try {
       await this.userRepository.save(user);
     } catch (e) {
@@ -125,25 +131,22 @@ export class UserService {
     userData: ServiceProviderSubscribeDto,
     profileImage: MulterFile,
   ): Promise<Partial<UserEntity>> {
+
+
     const user = this.userRepository.create({ ...userData });
+    user.role = UserRoleEnum.SERVICE_PROVIDER;
+    user.status = UserStatusEnum.PENDING;
+    await this.signup(user, profileImage);
 
-    try {
-      const user = this.userRepository.create({ ...userData });
-      user.role = UserRoleEnum.SERVICE_PROVIDER;
-      user.status = UserStatusEnum.PENDING;
-      await this.signup(user, profileImage);
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      profileImagePath: user.profileImagePath,
 
-      return {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        profileImagePath: user.profileImagePath,
-      };
-    } catch (error) {
-      console.log(error);
     }
   }
 
@@ -246,4 +249,60 @@ export class UserService {
   private isAdmin(user): boolean {
     return user.role === UserRoleEnum.ADMIN;
   }
+
+  async uploadCv(id: number, cv: MulterFile): Promise<Partial<UserEntity>> {
+    const userToUpdate = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!userToUpdate) {
+      throw new NotFoundException('Utilisateur non trouvé.');
+    }
+
+    if (!cv) {
+      throw new BadRequestException('Veuillez télécharger un cv.');
+    }
+    const fileType = mime.lookup(cv.originalname);
+
+    if (fileType && fileType.startsWith('application/pdf')) {
+     const oldCv = userToUpdate.document;
+
+      // Sanitize the original file name
+      const sanitizedFileName = cv.originalname.replace(/[^a-z0-9.]/gi, '_');
+
+      const uploadsDir = join(__dirname, '..', 'uploads', 'cvs');
+      // Ensure the uploads directory exists
+      if (!existsSync(uploadsDir)) {
+        mkdirSync(uploadsDir, { recursive: true });
+      }
+      const filePath = join(uploadsDir, Date.now() + sanitizedFileName);
+      const fileStream = createWriteStream(filePath);
+
+      fileStream.write(cv.buffer);
+      fileStream.end();
+      userToUpdate.document = filePath;
+      const newUser= await this.userRepository.save(userToUpdate);
+      if(oldCv){
+          const fs = require('fs');
+          fs.unlink(oldCv, (err) => {
+            if (err) {
+
+              throw new InternalServerErrorException('Erreur lors de la suppression de l`ancien fichier mais votre cv a été modifié avec succés');
+            }
+
+
+          });
+
+
+      }
+      return newUser;
+
+
+    }else {
+      throw new BadRequestException('Veuillez télécharger un cv en pdf.');
+    }
+
+
+  }
+
 }
