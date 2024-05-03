@@ -1,6 +1,21 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Req, Put, Delete, UseInterceptors, UploadedFile,Param, Patch, UnauthorizedException} from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Request,
+  Req,
+  Put,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  Param,
+  Patch,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
-import { ServiceProviderSubscribeDto} from  './dto/serviceprovider-subscribe.dto';
+import { ServiceProviderSubscribeDto } from './dto/serviceprovider-subscribe.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
 import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
@@ -12,85 +27,82 @@ import { UserStatusEnum } from './enum/userStatus.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterFile } from './interfaces/multer-file.interface';
 import { profile } from 'console';
+import { response } from 'express';
+import { AdminOrSelfGuard } from './guards/admin-or-self.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 @Controller('user')
 export class UserController {
-    constructor(
-        private userService: UserService
-    ) {
+  constructor(private userService: UserService) {}
 
-    }
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async findAll(): Promise<UserEntity[]> {
+    return this.userService.findAll();
+  }
 
-    @Get()
-    @UseGuards(JwtAuthGuard)
-    async findAll(@User() user): Promise<UserEntity[]> {
-        return this.userService.findAll(user);
-    }
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: number): Promise<UserEntity> {
+    return this.userService.findOne(+id);
+  }
 
-    @Get(':id')
-    @UseGuards(JwtAuthGuard)
-    async findOne(
-        @User() user,
-        @Param('id') id: number): Promise<UserEntity> {
-      return this.userService.findOne(user, id);
-    }
-    
-    @Post('register')
-    @UseInterceptors(FileInterceptor('profileImage'))
-    async register(
-        @Body() userData: UserSubscribeDto,
-        @UploadedFile() profileImage: MulterFile,
-        @Req() request: Request
-    ): Promise<Partial<UserEntity>> {
-        console.log(request);
-        return this.userService.register(userData,profileImage);
-    }
+  @Post('register')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseInterceptors(FileInterceptor('profileImage'))
+  async register(
+    @Body() userData: UserSubscribeDto,
+    @UploadedFile() profileImage: MulterFile,
+    @Req() request: Request,
+  ): Promise<Partial<UserEntity>> {
+    console.log(response.status);
+    return this.userService.register(userData, profileImage);
+  }
 
-    @Post('s-provider-register')
-    @UseInterceptors(FileInterceptor('profileImage'))
-    async service_register(
-        @Body() userData: ServiceProviderSubscribeDto,
-        @UploadedFile() profileImage: MulterFile,
-    ): Promise<Partial<UserEntity>> {
-        return this.userService.service_register(userData, profileImage);
-    }
+  @Post('s-provider-register')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseInterceptors(FileInterceptor('profileImage'))
+  async service_register(
+    @Body() userData: ServiceProviderSubscribeDto,
+    @UploadedFile() profileImage: MulterFile,
+  ): Promise<Partial<UserEntity>> {
+    return this.userService.service_register(userData, profileImage);
+  }
 
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
+  async update(
+    @Param('id') id: number,
+    @Body() userData: Partial<UserEntity>,
+  ): Promise<UserEntity> {
+    return this.userService.update(+id, userData);
+  }
 
-    @Patch(':id')
-    @UseGuards(JwtAuthGuard)
-    async update(
-        @User() user,
-        @Param('id') id: number, 
-        @Body() userData: Partial<UserEntity>): Promise<UserEntity> {
-      return this.userService.update(user, id, userData);
-    }
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: number): Promise<void> {
+    return this.userService.remove(+id);
+  }
 
-    @Delete(':id')
-    @UseGuards(JwtAuthGuard)
-    async remove(
-        @User() user,
-        @Param('id') id: number): Promise<void> {
-      return this.userService.remove(user, id);
-    }
+  @Post('login')
+  login(@Body() credentials: LoginCredentialsDto) {
+    return this.userService.login(credentials);
+  }
 
-    @Post('login')
-    login(@Body() credentials: LoginCredentialsDto) {
-        return this.userService.login(credentials);
-    }
+  @Patch('approve/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async approveServiceProvider(
+    @Param('id') id: number,
+  ): Promise<Partial<UserEntity>> {
+    return this.userService.approveServiceProvider(+id);
+  }
 
-
-    @Patch('approve/:id')
-    @UseGuards(JwtAuthGuard)
-    async approveServiceProvider(@User() user, @Param('id') id: number): Promise<Partial<UserEntity>> {
-    return this.userService.approveServiceProvider(user, id);
-    }
-
-
-    @Patch('reject/:id')
-    @UseGuards(JwtAuthGuard)
-    async rejectServiceProvider(@User() user, @Param('id') id: number): Promise<Partial<UserEntity>> {
-    return this.userService.rejectServiceProvider(user, id);
-    }    
-
-
+  @Patch('reject/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async rejectServiceProvider(
+    @Param('id') id: number,
+  ): Promise<Partial<UserEntity>> {
+    return this.userService.rejectServiceProvider(+id);
+  }
 }
