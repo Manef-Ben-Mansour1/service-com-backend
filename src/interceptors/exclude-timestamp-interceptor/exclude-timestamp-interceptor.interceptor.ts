@@ -1,4 +1,3 @@
-// exclude-timestamp.interceptor.ts
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -25,6 +24,13 @@ export class ExcludeTimestampInterceptor implements NestInterceptor {
     delete data.createdAt;
     delete data.updatedAt;
     delete data.deletedAt;
+
+    // Recursively remove timestamp fields from nested objects
+    for (const key in data) {
+      if (data.hasOwnProperty(key) && typeof data[key] === 'object') {
+        data[key] = this.excludeTimestamp(data[key]);
+      }
+    }
 
     return data;
   }
