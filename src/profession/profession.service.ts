@@ -32,6 +32,9 @@ export class ProfessionService {
     if (!user) {
       throw new BadRequestException('No user with id ' + profession.userId);
     }
+    if(user.role!="SERVICE_PROVIDER"){
+      throw new BadRequestException('User is not a service provider');
+    }
 
     const category = await this.categoryRepository.findOne({ where: { id: profession.categoryId } });
     if (!category) {
@@ -68,6 +71,10 @@ export class ProfessionService {
       if (!user) {
         throw new BadRequestException('No user with id ' + profession.userId);
       }
+
+    }
+    if(user.role!="SERVICE_PROVIDER"){
+      throw new BadRequestException('User is not a service provider');
     }
    let category=existingProfession.category
    if(profession.categoryId){
