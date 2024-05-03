@@ -72,26 +72,7 @@ export class UserController {
   }
 
 
-  @Patch(':id')
-  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
-  async update(
-    @Param('id') id: number,
-    @Body() userData: Partial<UserEntity>,
-  ): Promise<UserEntity> {
-    return this.userService.update(+id, userData);
-  }
 
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
-  @UseGuards(JwtAuthGuard)
-  async remove(@Param('id') id: number): Promise<void> {
-    return this.userService.remove(+id);
-  }
-
-  @Post('login')
-  login(@Body() credentials: LoginCredentialsDto) {
-    return this.userService.login(credentials);
-  }
 
     @Patch("cv")
     @UseGuards(JwtAuthGuard)
@@ -120,5 +101,26 @@ export class UserController {
     @Param('id') id: number,
   ): Promise<Partial<UserEntity>> {
     return this.userService.rejectServiceProvider(+id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
+  async update(
+    @Param('id') id: number,
+    @Body() userData: Partial<UserEntity>,
+  ): Promise<UserEntity> {
+    return this.userService.update(+id, userData);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: number): Promise<void> {
+    return this.userService.remove(+id);
+  }
+
+  @Post('login')
+  login(@Body() credentials: LoginCredentialsDto) {
+    return this.userService.login(credentials);
   }
 }

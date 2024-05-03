@@ -265,7 +265,7 @@ export class UserService {
           fs.unlink(oldCv, (err) => {
             if (err) {
 
-              throw new InternalServerErrorException('Erreur lors de la suppression de l`ancien fichier mais votre cv a été modifié avec succés');
+
             }
 
 
