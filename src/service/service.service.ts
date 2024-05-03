@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryEntity } from '../category/entities/category.entity';
 import { Repository } from 'typeorm';
@@ -20,10 +20,13 @@ export class ServiceService {
 
   ) {}
 
-  async createService(createServiceDto:CreateServiceDto): Promise<ServiceEntity> {
+  async createService(createServiceDto:CreateServiceDto,user:any): Promise<ServiceEntity> {
     const profession = await this.professionRepository.findOne({ where: { id: createServiceDto.professionId } });
     if(!profession){
       throw new BadRequestException('No Profession with this id');
+    }
+    if(profession.user.id!==user.id){
+      throw new UnauthorizedException('You don`t belong to this profession')
     }
 
     const newServiceData: Partial<ServiceEntity> = {
@@ -36,15 +39,21 @@ export class ServiceService {
     const service=this.serviceRepository.create(newServiceData);
     return await this.serviceRepository.save(service);
   }
-  async updateService(id:number,updateServiceDto:UpdateServiceDto): Promise<ServiceEntity> {
+  async updateService(id:number,updateServiceDto:UpdateServiceDto,user): Promise<ServiceEntity> {
     const service = await this.serviceRepository.findOne({ where: { id } });
     if (!service) {
       throw new BadRequestException('No Service with this id');
+    }
+    if(service.profession.user.id!==user.id){
+      throw new UnauthorizedException('You don`t own this service')
     }
     const professionId=updateServiceDto.professionId??service.profession.id;
     const profession = await this.professionRepository.findOne({ where: { id: professionId } });
     if(!profession){
       throw new BadRequestException('No Profession with this id');
+    }
+    if(profession.user.id!==user.id){
+      throw new UnauthorizedException('You don`t belong to the new profession')
     }
 
     const newServiceData: Partial<ServiceEntity> = {
@@ -58,10 +67,13 @@ export class ServiceService {
     return await this.serviceRepository.save(service);
   }
 
-  async deleteService(id:number): Promise<ServiceEntity> {
+  async deleteService(id:number,user): Promise<ServiceEntity> {
     const service = await this.serviceRepository.findOne({ where: { id } });
     if (!service) {
       throw new BadRequestException('No Service with this id');
+    }
+    if(service.profession.user.id!==user.id){
+      throw new UnauthorizedException('You don`t own this service')
     }
 
     return await this.serviceRepository.softRemove(service);
