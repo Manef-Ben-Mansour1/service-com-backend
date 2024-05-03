@@ -10,14 +10,15 @@ import {
   import { CreateRatingDto } from './dto/create-rating.dto';
   import { UpdateRatingDto } from './dto/update-rating.dto';
   import { RatingService } from './rating.service';
+import { UserEntity } from 'src/user/entities/user.entity';
   
   @Controller('ratings')
   export class RatingController {
     constructor(private readonly ratingService: RatingService) {}
   
     @Post()
-    create(@Body() createRatingDto: CreateRatingDto) {
-      return this.ratingService.create(createRatingDto);
+    create(@Body() createRatingDto: CreateRatingDto,serviceId: number, user: UserEntity) {
+      return this.ratingService.create(createRatingDto,serviceId,user);
     }
   
     @Get()

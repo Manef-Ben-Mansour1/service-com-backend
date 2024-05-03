@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,52 +9,74 @@ import { UserEntity } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class CommentService {
+  serviceService: any;
 
   constructor(
     @InjectRepository(CommentEntity)
-    private readonly commentRepository: Repository<CommentEntity>,
+    private readonly CommentRepository: Repository<CommentEntity>,
   ) {}
+  async create(createRatingDto: CreateCommentDto, serviceId: number, user: UserEntity): Promise<CommentEntity> {
+     const content  = CreateCommentDto;
 
-  create(createCommentDto: CreateCommentDto, 
-        service: ServiceEntity,
-        user: UserEntity
-      )
-   : Promise<CommentEntity> {
-    const { content } = createCommentDto;
+    // Retrieve the service by ID
+    const service = await this.serviceService.getServiceById(serviceId);
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    // Create a new rating
     const newComment = new CommentEntity();
-    newComment.content = content;
-    newComment.service =service
-    // service.find(service => service.id === serviceId);
+    newComment.content = content.toString();
+    newComment.service =service.getServiceById(serviceId);
     newComment.user =user ;
-    
-    console.log(newComment)
 
-    // Save user to database
-    return this.commentRepository.save(newComment);
+    // Save the rating to the database
+    return await this.CommentRepository.save(newComment);
   }
 
 
-  findAll() {
-    return `This action returns all comments`;
+
+  
+
+  findAll(): Promise<CommentEntity[]> {
+    return this.CommentRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #id comment`;
+  findCommentById(id: number): Promise<CommentEntity> {
+    return this.CommentRepository.findOne({where :{id}});
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #id comment`;
+  async update(id: number, updateCommentDto: UpdateCommentDto): Promise<CommentEntity> {
+    const comment = await this.findCommentById(id);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    // Update the comment properties
+    if (updateCommentDto.content) {
+      comment.content = updateCommentDto.content;
+    }
+
+    // Save the updated comment to the database
+    return await this.CommentRepository.save(comment);
   }
 
-  remove(id: number) {
-    return `This action removes a #id comment`;
+  async remove(id: number): Promise<void> {
+    const comment = await this.findCommentById(id);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    // Remove the comment from the database
+    await this.CommentRepository.remove(comment);
   }
 
-  findCommentsByServiceId(serviceId: number): Promise<CommentEntity[]> {
-    return this.commentRepository.find({
+  async findCommentsByServiceId(serviceId: number): Promise<CommentEntity[]> {
+    return this.CommentRepository.find({
       where: {
         service: { id: serviceId },
       },
     });
   }
 }
+
