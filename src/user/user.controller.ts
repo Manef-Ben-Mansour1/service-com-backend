@@ -47,13 +47,12 @@ export class UserController {
     }
 
     @Post('s-provider-register')
-    @UseInterceptors(FileInterceptor('document'),FileInterceptor('profileImage'))
+    @UseInterceptors(FileInterceptor('profileImage'))
     async service_register(
         @Body() userData: ServiceProviderSubscribeDto,
-        @UploadedFile() document: MulterFile,
         @UploadedFile() profileImage: MulterFile,
     ): Promise<Partial<UserEntity>> {
-        return this.userService.service_register(userData,document, profileImage);
+        return this.userService.service_register(userData, profileImage);
     }
 
 

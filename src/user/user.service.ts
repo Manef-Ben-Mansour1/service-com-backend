@@ -19,6 +19,7 @@ import { createWriteStream } from 'fs';
 import { join } from 'path';
 import { MulterFile } from './interfaces/multer-file.interface';
 import { error, profile } from 'console';
+import * as mime from 'mime-types';
 
 @Injectable()
 export class UserService {
@@ -76,23 +77,26 @@ export class UserService {
     user: Partial<UserEntity>,
     profileImage: MulterFile,
   ): Promise<void> {
-    console.log('before salt', user);
     user.salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, user.salt);
     if (profileImage) {
-      const filePath1 = join(
-        __dirname,
-        '..',
-        'uploads',
-        'profile-images',
-        profileImage.originalname,
-      );
-      const fileStream1 = createWriteStream(filePath1);
-      fileStream1.write(profileImage.buffer);
-      fileStream1.end();
-      user.profileImagePath = filePath1;
+      const fileType = mime.lookup(profileImage.originalname);
+      if (fileType && fileType.startsWith('image/')) {
+        const filePath1 = join(
+          __dirname,
+          '..',
+          'uploads',
+          'profile-images',
+          Date.now() + profileImage.originalname,
+        );
+        const fileStream1 = createWriteStream(filePath1);
+        fileStream1.write(profileImage.buffer);
+        fileStream1.end();
+        user.profileImagePath = filePath1;
+      } else {
+        throw new BadRequestException('Veuillez télécharger une image');
+      }
     }
-    console.log(user);
     try {
       await this.userRepository.save(user);
     } catch (e) {
@@ -119,32 +123,14 @@ export class UserService {
 
   async service_register(
     userData: ServiceProviderSubscribeDto,
-    document: MulterFile,
     profileImage: MulterFile,
   ): Promise<Partial<UserEntity>> {
     const user = this.userRepository.create({ ...userData });
-    if (!document) {
-      throw new BadRequestException(
-        'A file upload is required for service providers.',
-      );
-    }
 
     try {
-      const filePath = join(
-        __dirname,
-        '..',
-        'uploads',
-        'service-providers',
-        document.originalname,
-      );
-      const fileStream = createWriteStream(filePath);
-      fileStream.write(document.buffer);
-      fileStream.end();
-      user.document = filePath;
-
+      const user = this.userRepository.create({ ...userData });
       user.role = UserRoleEnum.SERVICE_PROVIDER;
       user.status = UserStatusEnum.PENDING;
-
       await this.signup(user, profileImage);
 
       return {
@@ -154,7 +140,6 @@ export class UserService {
         email: user.email,
         role: user.role,
         status: user.status,
-        document: user.document,
         profileImagePath: user.profileImagePath,
       };
     } catch (error) {
