@@ -35,21 +35,10 @@ import { AdminGuard } from './guards/admin.guard';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async findAll(): Promise<UserEntity[]> {
-    return this.userService.findAll();
-  }
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async findOne(@Param('id') id: number): Promise<UserEntity> {
-    return this.userService.findOne(+id);
-  }
 
 
   @Post('register')
-  @UseGuards(JwtAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('profileImage'))
   async register(
     @Body() userData: UserSubscribeDto,
@@ -62,7 +51,6 @@ export class UserController {
 
 
   @Post('s-provider-register')
-  @UseGuards(JwtAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('profileImage'))
   async service_register(
     @Body() userData: ServiceProviderSubscribeDto,
@@ -83,6 +71,10 @@ export class UserController {
     ): Promise<Partial<UserEntity>> {
         return this.userService.uploadCv(user.id, cv);
     }
+  @Post('login')
+  login(@Body() credentials: LoginCredentialsDto) {
+    return this.userService.login(credentials);
+  }
 
 
 
@@ -119,8 +111,17 @@ export class UserController {
     return this.userService.remove(+id);
   }
 
-  @Post('login')
-  login(@Body() credentials: LoginCredentialsDto) {
-    return this.userService.login(credentials);
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: number): Promise<UserEntity> {
+    return this.userService.findOne(+id);
   }
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async findAll(): Promise<UserEntity[]> {
+    return this.userService.findAll();
+  }
+
+
+
 }
