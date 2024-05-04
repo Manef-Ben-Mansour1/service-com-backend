@@ -15,21 +15,35 @@ export class OrderService {
   ) {}
 
   async createOrder(order: CreateOrderDto, user): Promise<OrderEntity> {
+    const service = await this.serviceService.getServiceById(order.serviceId);
+    if (!service) {
+      throw new BadRequestException('Service not found');
+    }
+    if(service.profession.user.id === user.id){
+      throw new BadRequestException('You cannot order your own service');
+    }
     const newOrder = this.orderRepository.create(order);
     newOrder.user = user;
     newOrder.status = OrderStatusEnum.EN_ATTENTE;
-    newOrder.service = await this.serviceService.getServiceById(
-      order.serviceId,
-    );
+    newOrder.service = service
     return this.orderRepository.save(newOrder);
   }
-  async confirmOrder(id: number): Promise<OrderEntity> {
+  async confirmOrder(id: number , user): Promise<OrderEntity> {
     const order = await this.orderRepository.findOne({ where: { id } });
+    if (order.status !== OrderStatusEnum.EN_ATTENTE) {
+      throw new BadRequestException('Order is not pending');
+    }
+    if (order.service.profession.user.id !== user.id) {
+      throw new BadRequestException('You are not authorized to confirm this order');
+    }
     order.status = OrderStatusEnum.CONFIRME;
     return this.orderRepository.save(order);
   }
-  async finishOrder(id: number): Promise<OrderEntity> {
+  async finishOrder(id: number, user): Promise<OrderEntity> {
     const order = await this.orderRepository.findOne({ where: { id } });
+    if (order.service.profession.user.id !== user.id) {
+      throw new BadRequestException('You are not authorized to confirm this order');
+    }
     if (order.status !== OrderStatusEnum.CONFIRME) {
       throw new BadRequestException('Order is not confirmed yet');
     }
@@ -42,7 +56,7 @@ export class OrderService {
       relations: ['service'],
     });
   }
-  async getOrdersByServiceId(serviceId: number): Promise<OrderEntity[]> {
+  async getOrdersByServiceId(serviceId: number, user): Promise<OrderEntity[]> {
     return this.orderRepository.find({
       where: { service: { id: serviceId } },
       relations: ['user'],
