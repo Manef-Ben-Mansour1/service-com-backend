@@ -19,6 +19,7 @@ import { OrderModule } from './order/order.module';
 import { ProfessionEntity } from './profession/entities/profession.entity';
 import { ProfessionModule } from './profession/profession.module';
 import { RatingEntity } from './rating/entities/rating.entity';
+import { MulterModule } from '@nestjs/platform-express';
 import { RatingModule } from './rating/rating.module';
 import { ServiceEntity } from './service/entities/service.entity';
 import { ServiceModule } from './service/service.module';
@@ -29,7 +30,10 @@ import { MessagesGateway } from './chat/chat.gateway';
 dotenv.config();
 
 @Module({
+
   imports: [
+    MulterModule.register({
+    dest: './uploads',}),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
