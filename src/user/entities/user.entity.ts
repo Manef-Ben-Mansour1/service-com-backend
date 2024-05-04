@@ -3,6 +3,7 @@ import { UserRoleEnum } from '../enum/userRole.enum';
 import { TimestampEntity } from '../../generics/timestamp.entity' ;
 import { ProfessionEntity } from '../../profession/entities/profession.entity';
 import { OrderEntity } from '../../order/entities/order.entity';
+import { UserStatusEnum } from '../enum/userStatus.enum';
 
 
 @Entity('user')
@@ -34,9 +35,12 @@ export class UserEntity extends TimestampEntity{
   delegation: string;
 
 
-  @Column({
-  })
+  @Column({nullable: true})
   profileImagePath: string;
+
+  @Column({nullable: true})
+  document: string;
+
 
   @Column({
     type: "enum",
@@ -45,6 +49,10 @@ export class UserEntity extends TimestampEntity{
   })
   role: UserRoleEnum;
 
+  @Column({
+    nullable: true, 
+  })
+  status: UserStatusEnum;
 
   @Column({
     unique: true,

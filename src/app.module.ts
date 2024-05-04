@@ -19,11 +19,14 @@ import { CommentModule } from './comment/comment.module';
 import { CommentEntity } from './comment/entities/comment.entity';
 import { RatingModule } from './rating/rating.module';
 import { RatingEntity } from './rating/entities/rating.entity';
+import { MulterModule } from '@nestjs/platform-express';
 
 dotenv.config();
 
 @Module({
-  imports: [ TypeOrmModule.forRoot({
+  imports: [MulterModule.register({
+    dest: './uploads',}),
+     TypeOrmModule.forRoot({
     type: "mysql",
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT),
@@ -35,5 +38,6 @@ dotenv.config();
   }), UserModule, CategoryModule, ServiceModule, OrderModule, ProfessionModule, CommentModule, RatingModule],
   controllers: [AppController],
   providers: [AppService],
+  
 })
 export class AppModule {}

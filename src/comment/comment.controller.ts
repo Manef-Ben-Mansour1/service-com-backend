@@ -21,8 +21,8 @@ export class CommentController {
 
   @Post()
   create(@Body() createCommentDto: CreateCommentDto,
-  service: ServiceEntity, user: UserEntity ) {
-    return this.commentService.create(createCommentDto,service,user);
+  serviceId: number, user: UserEntity ) {
+    return this.commentService.create(createCommentDto,serviceId,user);
   }
 
   @Get()
@@ -32,7 +32,7 @@ export class CommentController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.commentService.findOne(+id);
+    return this.commentService.findCommentById(+id);
   }
 
   @Get(':serviceId')
