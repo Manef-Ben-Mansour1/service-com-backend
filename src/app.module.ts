@@ -12,8 +12,6 @@ import { ConversationModule } from './conversation/conversation.module';
 import { ConversationEntity } from './conversation/entities/conversation.entity';
 import { MessageEntity } from './message/entities/message.entity';
 import { MessageModule } from './message/message.module';
-import { OrderServiceEntity } from './order-service/entities/order-service.entity';
-import { OrderServiceModule } from './order-service/order-service.module';
 import { OrderEntity } from './order/entities/order.entity';
 import { OrderModule } from './order/order.module';
 import { ProfessionEntity } from './profession/entities/profession.entity';
@@ -30,10 +28,10 @@ import { MessagesGateway } from './chat/chat.gateway';
 dotenv.config();
 
 @Module({
-
   imports: [
     MulterModule.register({
-    dest: './uploads',}),
+      dest: './uploads',
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -47,7 +45,6 @@ dotenv.config();
         ProfessionEntity,
         ServiceEntity,
         OrderEntity,
-        OrderServiceEntity,
         CommentEntity,
         RatingEntity,
         MessageEntity,
@@ -59,7 +56,6 @@ dotenv.config();
     CategoryModule,
     ServiceModule,
     OrderModule,
-    OrderServiceModule,
     ProfessionModule,
     CommentModule,
     RatingModule,

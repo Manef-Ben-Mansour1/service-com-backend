@@ -28,10 +28,8 @@ export class MessageService {
   async create(createMessageDto: CreateMessageDto): Promise<MessageEntity> {
     const message = new MessageEntity();
     message.text = createMessageDto.text;
-    message.sender = await this.userService.getUserById(
-      createMessageDto.senderId,
-    );
-    message.recipient = await this.userService.getUserById(
+    message.sender = await this.userService.findOne(createMessageDto.senderId);
+    message.recipient = await this.userService.findOne(
       createMessageDto.recipientId,
     );
     const conversation = await this.conversationService.getConversationByUsers(
