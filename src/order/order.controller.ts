@@ -48,7 +48,8 @@ export class OrderController {
     return this.orderService.finishOrder(id, user);
   }
   @Get()
-  async getOrdersByUser(user): Promise<OrderEntity[]> {
+  @UseGuards(JwtAuthGuard)
+  async getOrdersByUser(@User() user): Promise<OrderEntity[]> {
     return this.orderService.getOrdersByUser(user);
   }
   @Get('/service/:serviceId')
@@ -57,8 +58,15 @@ export class OrderController {
     @Param('serviceId', ParseIntPipe) serviceId: number,
     @User() user,
   ): Promise<OrderEntity[]> {
-    return this.orderService.getOrdersByServiceId(serviceId,user);
+    return this.orderService.getOrdersByServiceId(serviceId, user);
   }
+  @Get('/s-provider/')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.SERVICE_PROVIDER)
+  async getOrdersByServiceProvider(@User() user): Promise<OrderEntity[]> {
+    return this.orderService.getOrdersByServiceProvider(user);
+  }
+
   @Get('/:id')
   async getOrderById(
     @Param('id', ParseIntPipe) id: number,
