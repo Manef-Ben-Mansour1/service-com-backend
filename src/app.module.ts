@@ -20,8 +20,9 @@ import { CommentEntity } from './comment/entities/comment.entity';
 import { RatingModule } from './rating/rating.module';
 import { RatingEntity } from './rating/entities/rating.entity';
 import { MulterModule } from '@nestjs/platform-express';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationModule } from './notification/notification.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+
 
 dotenv.config();
 
@@ -55,8 +56,8 @@ dotenv.config();
     ProfessionModule,
     CommentModule,
     RatingModule,
-    EventEmitterModule.forRoot(),
     NotificationModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
