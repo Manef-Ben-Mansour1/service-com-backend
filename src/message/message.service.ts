@@ -12,7 +12,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { ConversationService } from 'src/conversation/conversation.service';
-import { measureMemory } from 'vm';
 
 @Injectable()
 export class MessageService {
@@ -36,9 +35,6 @@ export class MessageService {
       message.sender,
       message.recipient,
     );
-    console.log(message.sender);
-    console.log(message.recipient);
-    console.log(conversation);
 
     message.conversation = conversation;
     return this.messageRepository.save(message);

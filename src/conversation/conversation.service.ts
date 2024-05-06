@@ -91,7 +91,6 @@ export class ConversationService {
       },
     });
 
-    console.log(conv);
     if (!conv) {
       conv = await this.conversationRepository.findOne({
         relations: {
@@ -108,7 +107,6 @@ export class ConversationService {
         },
       });
     }
-    console.log(conv);
 
     if (!conv) {
       const createConversationDto = new CreateConversationDto();

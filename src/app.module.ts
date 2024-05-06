@@ -24,11 +24,17 @@ import { ServiceModule } from './service/service.module';
 import { UserEntity } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { MessagesGateway } from './chat/chat.gateway';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { WsJwtAuthGuard } from './chat/guards/ws-jwt-auth.guard';
 
 dotenv.config();
 
 @Module({
   imports: [
+    JwtModule.register({
+      secret: process.env.SECRET,
+    }),
+
     MulterModule.register({
       dest: './uploads',
     }),
@@ -63,6 +69,6 @@ dotenv.config();
     ConversationModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MessagesGateway],
+  providers: [AppService, MessagesGateway, JwtService, WsJwtAuthGuard],
 })
 export class AppModule {}
