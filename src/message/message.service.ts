@@ -24,10 +24,13 @@ export class MessageService {
     private readonly conversationService: ConversationService,
   ) {}
 
-  async create(createMessageDto: CreateMessageDto): Promise<MessageEntity> {
+  async create(
+    createMessageDto: CreateMessageDto,
+    senderId: number,
+  ): Promise<MessageEntity> {
     const message = new MessageEntity();
     message.text = createMessageDto.text;
-    message.sender = await this.userService.findOne(createMessageDto.senderId);
+    message.sender = await this.userService.findOne(senderId);
     message.recipient = await this.userService.findOne(
       createMessageDto.recipientId,
     );

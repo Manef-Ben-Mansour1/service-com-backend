@@ -114,4 +114,19 @@ export class MessagesGateway
     console.log(client.rooms);
     return newMessage;
   }
+
+  @SubscribeMessage('getMessages')
+  async getMessages(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() conversationId: string,
+  ): Promise<MessageEntity[]> {
+    // Retrieve messages from the database
+    const messages =
+      await this.messageService.getMessagesByConversationId(+conversationId);
+
+    // Send the messages to the client
+    client.emit('messageHistory', messages);
+
+    return messages;
+  }
 }

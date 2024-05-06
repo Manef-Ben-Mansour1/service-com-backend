@@ -14,6 +14,8 @@ import { MessageService } from './message.service';
 import { JwtAuthGuard } from '../user/guards/jwt-auth.guard';
 import { AdminGuard } from 'src/user/guards/admin.guard';
 import { AdminOrSelfGuard } from 'src/user/guards/admin-or-self.guard';
+import { User } from 'src/decorators/user.decorator';
+import { UserEntity } from 'src/user/entities/user.entity';
 
 @Controller('messages')
 export class MessageController {
@@ -21,8 +23,8 @@ export class MessageController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() createMessageDto: CreateMessageDto) {
-    return this.messageService.create(createMessageDto);
+  create(@Body() createMessageDto: CreateMessageDto, @User() user: UserEntity) {
+    return this.messageService.create(createMessageDto, user.id);
   }
 
   @Get()
@@ -32,13 +34,13 @@ export class MessageController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard,AdminOrSelfGuard)
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
   findOne(@Param('id') id: string) {
     return this.messageService.findOne(+id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard,AdminOrSelfGuard)
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
   update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
     return this.messageService.update(+id, updateMessageDto);
   }
