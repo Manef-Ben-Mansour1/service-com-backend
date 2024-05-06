@@ -4,9 +4,7 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoryEntity } from './entities/category.entity';
 import {UpdateCategoryDto} from './dto/update-category.dto';
-import { JwtAuthGuard } from '../user/guards/jwt-auth.guard';
-import { AdminGuard } from '../user/guards/admin.guard';
-@UseGuards(JwtAuthGuard, AdminGuard)
+
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
