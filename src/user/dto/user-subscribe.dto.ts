@@ -22,7 +22,10 @@ export class UserSubscribeDto {
     profileImagePath: string
 
     @IsNotEmpty()
-    password: string; 
+    password: string;
+
+   @IsNotEmpty()
+    isServiceProvider: string;
 
     
 }

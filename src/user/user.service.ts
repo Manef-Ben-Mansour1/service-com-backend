@@ -102,7 +102,9 @@ export class UserService {
     userData: UserSubscribeDto,
     profileImage: MulterFile,
   ): Promise<Partial<UserEntity>> {
+
     const user = this.userRepository.create({ ...userData });
+    user.role=userData.isServiceProvider.toUpperCase()==="TRUE"? UserRoleEnum.SERVICE_PROVIDER:UserRoleEnum.USER;
     await this.signup(user, profileImage);
     return {
       id: user.id,
@@ -112,6 +114,7 @@ export class UserService {
       gouvernorat: user.gouvernorat,
       delegation: user.delegation,
       profileImagePath: user.profileImagePath,
+      role:user.role,
     };
   }
 
