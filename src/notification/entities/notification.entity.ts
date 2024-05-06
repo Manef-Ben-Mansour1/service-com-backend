@@ -3,7 +3,7 @@ import { UserEntity } from '../../user/entities/user.entity';
 import { TimestampEntity } from '../../generics/timestamp.entity';
 
 @Entity('notification')
-export class OrderEntity extends TimestampEntity {
+export class NotificationEntity extends TimestampEntity {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()

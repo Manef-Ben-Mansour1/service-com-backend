@@ -21,6 +21,7 @@ import { RatingModule } from './rating/rating.module';
 import { RatingEntity } from './rating/entities/rating.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { NotificationModule } from './notification/notification.module';
+import { NotificationEntity } from './notification/entities/notification.entity';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 
@@ -46,6 +47,7 @@ dotenv.config();
         OrderEntity,
         CommentEntity,
         RatingEntity,
+        NotificationEntity,
       ],
       synchronize: true,
     }),

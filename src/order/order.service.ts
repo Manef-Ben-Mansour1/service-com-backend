@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatusEnum } from './enums/order-status.enum';
 import { ServiceService } from '../service/service.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrderService {
@@ -12,6 +13,7 @@ export class OrderService {
     @InjectRepository(OrderEntity)
     private readonly orderRepository: Repository<OrderEntity>,
     private readonly serviceService: ServiceService,
+    private eventEmitter: EventEmitter2
   ) {}
 
   async createOrder(order: CreateOrderDto, user): Promise<OrderEntity> {
@@ -26,7 +28,9 @@ export class OrderService {
     newOrder.user = user;
     newOrder.status = OrderStatusEnum.EN_ATTENTE;
     newOrder.service = service;
-    return this.orderRepository.save(newOrder);
+    const savedOrder = this.orderRepository.save(newOrder);
+    this.eventEmitter.emit('order.created', newOrder);
+    return savedOrder;
   }
   async confirmOrder(id: number, user): Promise<OrderEntity> {
     const order = await this.orderRepository.findOne({ where: { id } });
