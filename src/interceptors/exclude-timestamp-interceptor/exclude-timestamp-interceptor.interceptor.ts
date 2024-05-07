@@ -5,33 +5,38 @@ import { map } from 'rxjs/operators';
 @Injectable()
 export class ExcludeTimestampInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const seen = new WeakSet();
     return next.handle().pipe(
       map(data => {
         if (Array.isArray(data)) {
-          return data.map(item => this.excludeTimestamp(item));
+          return data.map(item => this.excludeTimestamp(item, seen));
         }
-        return this.excludeTimestamp(data);
+        return this.excludeTimestamp(data, seen);
       }),
     );
   }
 
-  private excludeTimestamp(data: any): any {
-    if (!data || typeof data !== 'object') {
+  private excludeTimestamp(data: any, seen: WeakSet<object>): any {
+    if (!data || typeof data !== 'object' || data instanceof Date) {
       return data;
     }
 
+    if (seen.has(data)) {
+      // This object has already been processed, avoid infinite recursion
+      return data;
+    }
+    seen.add(data);
+
     // Remove timestamp fields
-    delete data.createdAt;
-    delete data.updatedAt;
-    delete data.deletedAt;
+    const { createdAt, updatedAt, deletedAt, ...restData } = data;
 
     // Recursively remove timestamp fields from nested objects
-    for (const key in data) {
-      if (data.hasOwnProperty(key) && typeof data[key] === 'object') {
-        data[key] = this.excludeTimestamp(data[key]);
+    Object.keys(restData).forEach(key => {
+      if (Object.prototype.hasOwnProperty.call(restData, key) && typeof restData[key] === 'object') {
+        restData[key] = this.excludeTimestamp(restData[key], seen);
       }
-    }
+    });
 
-    return data;
+    return restData;
   }
 }
