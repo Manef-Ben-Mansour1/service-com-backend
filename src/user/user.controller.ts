@@ -36,9 +36,6 @@ import { Response } from 'express';
 export class UserController {
   constructor(private userService: UserService) {}
 
-
-
-
   @Post('register')
   @UseInterceptors(FileInterceptor('profileImage'))
   async register(
@@ -50,7 +47,6 @@ export class UserController {
     return this.userService.register(userData, profileImage);
   }
 
-
   @Post('s-provider-register')
   @UseInterceptors(FileInterceptor('profileImage'))
   async service_register(
@@ -61,9 +57,7 @@ export class UserController {
   }
 
 
-
-
-  @Patch("cv")
+  @Patch('cv')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('cv'))
   async uploadCv(
@@ -76,9 +70,6 @@ export class UserController {
   login(@Body() credentials: LoginCredentialsDto,@Res() response: Response) {
     return this.userService.login(credentials,response);
   }
-
-
-
 
   @Patch('approve/:id')
   @UseGuards(JwtAuthGuard, AdminGuard)
@@ -122,7 +113,4 @@ export class UserController {
   async findAll(): Promise<UserEntity[]> {
     return this.userService.findAll();
   }
-
-
-
 }
