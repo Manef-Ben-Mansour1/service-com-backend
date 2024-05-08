@@ -17,6 +17,7 @@ import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Logger, UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
+import { User } from 'src/decorators/user.decorator';
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -95,14 +96,17 @@ export class MessagesGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() data: string,
   ): Promise<MessageEntity> {
+    console.log(client.data.user);
     const createMessageDto: CreateMessageDto = JSON.parse(data);
 
     const recipient = await this.userService.findOne(
       createMessageDto.recipientId,
     );
-    const sender = await this.userService.findOne(createMessageDto.senderId);
 
-    const newMessage = await this.messageService.create(createMessageDto);
+    const newMessage = await this.messageService.create(
+      createMessageDto,
+      client.data.user,
+    );
     // const conv = await this.conversationService.getConversationByUsers(
     //   sender,
     //   recipient,
@@ -123,7 +127,7 @@ export class MessagesGateway
     // Retrieve messages from the database
     const messages =
       await this.messageService.getMessagesByConversationId(+conversationId);
-
+    console.log(messages);
     // Send the messages to the client
     client.emit('messageHistory', messages);
 
