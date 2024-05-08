@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import * as process from 'node:process';
+import { TimestampEntity } from './generics/timestamp.entity';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CategoryModule } from './category/category.module';
@@ -18,6 +19,9 @@ import { ProfessionEntity } from './profession/entities/profession.entity';
 import { ProfessionModule } from './profession/profession.module';
 import { RatingEntity } from './rating/entities/rating.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { NotificationModule } from './notification/notification.module';
+import { NotificationEntity } from './notification/entities/notification.entity';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RatingModule } from './rating/rating.module';
 import { ServiceEntity } from './service/entities/service.entity';
 import { ServiceModule } from './service/service.module';
@@ -31,6 +35,7 @@ dotenv.config();
 
 @Module({
   imports: [
+
     JwtModule.register({
       secret: process.env.SECRET,
     }),
@@ -53,6 +58,7 @@ dotenv.config();
         OrderEntity,
         CommentEntity,
         RatingEntity,
+        NotificationEntity,
         MessageEntity,
         ConversationEntity,
       ],
@@ -65,6 +71,8 @@ dotenv.config();
     ProfessionModule,
     CommentModule,
     RatingModule,
+    NotificationModule,
+    EventEmitterModule.forRoot(),
     MessageModule,
     ConversationModule,
   ],
