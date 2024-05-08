@@ -1,21 +1,21 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Patch,
-    Post,
-  } from '@nestjs/common';
-  import { CreateRatingDto } from './dto/create-rating.dto';
-  import { UpdateRatingDto } from './dto/update-rating.dto';
-  import { RatingService } from './rating.service';
-  
-  @Controller('ratings')
-  export class RatingController {
-    constructor(private readonly ratingService: RatingService) {}
-  
-    /*
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
+import { CreateRatingDto } from './dto/create-rating.dto';
+import { UpdateRatingDto } from './dto/update-rating.dto';
+//import { RatingService } from './rating.service';
+
+@Controller('ratings')
+export class RatingController {
+  constructor() {}
+
+  /*
     @Post()
     create(@Body() createRatingDto: CreateRatingDto) {
       return this.ratingService.create(createRatingDto);
@@ -41,5 +41,4 @@ import {
       return this.ratingService.remove(+id);
     }
     */
-  }
-  
+}
