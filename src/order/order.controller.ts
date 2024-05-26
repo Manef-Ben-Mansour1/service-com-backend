@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -50,11 +51,11 @@ export class OrderController {
     return this.orderService.finishOrder(id, user);
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async getOrdersByUser(@User() user): Promise<OrderEntity[]> {
-    return this.orderService.getOrdersByUser(user);
-  }
+  // @Get()
+  // @UseGuards(JwtAuthGuard)
+  // async getOrdersByUser(@User() user): Promise<OrderEntity[]> {
+  //   return this.orderService.getOrdersByUser(user);
+  // }
 
   @Get('/service/:serviceId')
   @UseGuards(JwtAuthGuard)
@@ -65,11 +66,17 @@ export class OrderController {
     return this.orderService.getOrdersByServiceId(serviceId, user);
   }
   
-  @Get('/s-provider/')
+  @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.SERVICE_PROVIDER)
-  async getOrdersByServiceProvider(@User() user): Promise<OrderEntity[]> {
-    return this.orderService.getOrdersByServiceProvider(user);
+  async getOrders(@User() user): Promise<OrderEntity[]> {
+    if (user.role === UserRoleEnum.SERVICE_PROVIDER) {
+      return this.orderService.getOrdersByServiceProvider(user);
+    } else if (user.role === UserRoleEnum.USER) {
+      return this.orderService.getOrdersByUser(user);
+    } else {
+      // Admin can view all orders
+      return this.orderService.getAllOrders();
+    }
   }
 
   @Get('/:id')

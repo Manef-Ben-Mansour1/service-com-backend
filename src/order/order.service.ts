@@ -13,7 +13,7 @@ export class OrderService {
     @InjectRepository(OrderEntity)
     private readonly orderRepository: Repository<OrderEntity>,
     private readonly serviceService: ServiceService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createOrder(order: CreateOrderDto, user): Promise<OrderEntity> {
@@ -69,6 +69,9 @@ export class OrderService {
       relations: ['service'],
     });
   }
+  async getAllOrders(): Promise<OrderEntity[]> {
+    return this.orderRepository.find({ relations: ['user', 'service'] });
+  }
   async getOrdersByServiceId(serviceId: number, user): Promise<OrderEntity[]> {
     return this.orderRepository.find({
       where: { service: { id: serviceId } },
@@ -76,9 +79,6 @@ export class OrderService {
     });
   }
   async getOrdersByServiceProvider(user): Promise<OrderEntity[]> {
-    if (!user.profession) {
-      throw new BadRequestException('You are not a service provider');
-    }
     return this.orderRepository.find({
       where: { service: { profession: { user: { id: user.id } } } },
       relations: ['user', 'service'],
