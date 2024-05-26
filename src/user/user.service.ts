@@ -16,11 +16,10 @@ import { LoginCredentialsDto } from './dto/LoginCredentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserRoleEnum } from './enum/userRole.enum';
 import { UserStatusEnum } from './enum/userStatus.enum';
-import fs, { createWriteStream } from 'fs';
+import  { createWriteStream } from 'fs';
 import { join } from 'path';
 import { MulterFile } from './interfaces/multer-file.interface';
 import { mkdirSync, existsSync } from 'fs';
-import { error, profile } from 'console';
 import * as mime from 'mime-types';
 import { use } from 'passport';
 import { Response } from 'express';
@@ -39,12 +38,21 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<UserEntity> {
-    return await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    } else {
+      return user;
+    }
   }
-
-  async update(id: number, userData: Partial<UserEntity>): Promise<UserEntity> {
-    await this.userRepository.update(id, userData);
-    return await this.userRepository.findOne({ where: { id } });
+  async update(id: number, userData: Partial<UserEntity>): Promise<UserEntity> {  
+    const user =  await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    } else {
+      const updatedUser = await this.userRepository.update(id, userData);
+      return  updatedUser.raw[0];
+    }
   }
 
   async remove(id: number): Promise<void> {

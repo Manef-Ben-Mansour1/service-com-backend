@@ -6,6 +6,7 @@ import { ProfessionEntity } from '../profession/entities/profession.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { CategoryEntity } from '../category/entities/category.entity';
 import { ServiceEntity } from './entities/service.entity';
+import { ServiceResolver } from './service.resolver';
 
 @Module({
   imports: [
@@ -18,9 +19,8 @@ import { ServiceEntity } from './entities/service.entity';
   ],
 
   controllers: [ServiceController],
-  providers: [ServiceService],
-  exports: [ServiceService]
-
+  providers: [ServiceService, ServiceResolver],
+  exports:[ServiceService]
 
 })
 export class ServiceModule {}

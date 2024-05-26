@@ -122,7 +122,10 @@ export class ServiceService {
   }
 
   async getServiceById(id: number): Promise<ServiceEntity> {
-    const service = await this.serviceRepository.findOne({ where: { id } });
+    const service = await this.serviceRepository.findOne({ 
+      where: { id },
+      relations: ['ratings', 'comments'], 
+    });
     if (!service) {
       throw new BadRequestException('No Service with this id');
     }

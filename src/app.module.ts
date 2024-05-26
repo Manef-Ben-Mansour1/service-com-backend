@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import * as process from 'node:process';
+import { UserEntity } from './user/entities/user.entity';
 import { TimestampEntity } from './generics/timestamp.entity';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -19,7 +20,6 @@ import { ProfessionEntity } from './profession/entities/profession.entity';
 import { ProfessionModule } from './profession/profession.module';
 import { RatingEntity } from './rating/entities/rating.entity';
 import { MulterModule } from '@nestjs/platform-express';
-
 import { NotificationModule } from './notification/notification.module';
 import { NotificationEntity } from './notification/entities/notification.entity';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -34,13 +34,20 @@ import { WsJwtAuthGuard } from './chat/guards/ws-jwt-auth.guard';
 import { EventsModule } from './events/events.module';
 import { EventsGateway } from './events/events.gateway';
 import { WsJwtGuard } from './comment/guards/ws-jwt/ws-jwt.guard';
+import { GraphQLModule } from '@nestjs/graphql';
+import { join } from 'path';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 
 dotenv.config();
 
 @Module({
   imports: [
-
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      autoSchemaFile: true, // Automatically generate schema
+      driver: ApolloDriver,
+      playground: true,
+    }),
     JwtModule.register({
       secret: process.env.SECRET,
     }),
@@ -76,6 +83,7 @@ dotenv.config();
     ProfessionModule,
     CommentModule,
     RatingModule,
+    EventsModule,
     NotificationModule,
     EventEmitterModule.forRoot(),
     MessageModule,
@@ -84,6 +92,5 @@ dotenv.config();
   ],
   controllers: [AppController],
   providers: [AppService, MessagesGateway, JwtService, WsJwtAuthGuard,WsJwtGuard],
-
 })
 export class AppModule {}
