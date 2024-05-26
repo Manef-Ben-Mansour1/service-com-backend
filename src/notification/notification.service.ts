@@ -16,7 +16,8 @@ export class NotificationService {
   @OnEvent('order.created')
   handleOrderCreatedEvent(order: OrderEntity) {
     const notification = new NotificationEntity();
-    notification.user = order.service.profession.user;
+    notification.receiver = order.service.profession.user;
+    notification.emitter = order.user;
     notification.title = 'New order created';
     notification.description = `A new order of ${order.service.title} has been created.`;
 
