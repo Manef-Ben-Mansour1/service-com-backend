@@ -10,7 +10,7 @@ import { CreateCommentDto } from '../comment/dto/create-comment.dto';
 import { CommentService } from '../comment/comment.service';
 import { UserService } from 'src/user/user.service';
 @WebSocketGateway({ namespace: 'events' })
-//@UseGuards(WsJwtGuard)
+@UseGuards(WsJwtGuard)
 export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect {
   constructor(
     private jwtService :JwtService,
