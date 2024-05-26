@@ -13,7 +13,6 @@ export class NotificationController {
   @Sse('sse')
   @UseGuards(JwtAuthGuard)
   sse(@User() user: UserEntity): Observable<any> {
-    // console.log('SSE connection established for user:', user);
     return fromEvent(this.eventEmitter, 'notification').pipe(
       filter((payload: NotificationEntity) => {
         let shouldEmit;
@@ -26,7 +25,6 @@ export class NotificationController {
         return shouldEmit;
       }),
       map((payload: any) => {
-        // console.log('Emitting payload:', payload);
         return {
           data: JSON.stringify({
             notificationTitle: payload.title,
