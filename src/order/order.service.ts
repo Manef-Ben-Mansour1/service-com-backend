@@ -43,11 +43,12 @@ export class OrderService {
       );
     }
     order.status = OrderStatusEnum.CONFIRME;
-    return this.orderRepository.save(order);
+    const savedOrder = this.orderRepository.save(order);
+    this.eventEmitter.emit('order.confirmed', order);
+    return savedOrder;
   }
   async finishOrder(id: number, user): Promise<OrderEntity> {
     const order = await this.orderRepository.findOne({ where: { id } });
-    console.log(order);
     if (order.service.profession.user.id !== user.id) {
       throw new BadRequestException(
         'You are not authorized to confirm this order',
@@ -57,7 +58,9 @@ export class OrderService {
       throw new BadRequestException('Order is not confirmed yet');
     }
     order.status = OrderStatusEnum.FINIE;
-    return this.orderRepository.save(order);
+    const savedOrder = this.orderRepository.save(order);
+    this.eventEmitter.emit('order.finished', order);
+    return savedOrder;
   }
 
   async getOrdersByUser(user): Promise<OrderEntity[]> {

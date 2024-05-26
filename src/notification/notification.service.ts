@@ -14,15 +14,32 @@ export class NotificationService {
   ) {}
 
   @OnEvent('order.created')
-  handleOrderCreatedEvent(order: OrderEntity) {
+  handleOrderCreatedOrder(order: OrderEntity) {
     const notification = new NotificationEntity();
     notification.receiver = order.service.profession.user;
     notification.emitter = order.user;
     notification.title = 'New order created';
     notification.description = `A new order of ${order.service.title} has been created.`;
-
     this.notificationRepository.save(notification);
-
-    this.eventEmitter.emit('notification.created', notification);
+    this.eventEmitter.emit('notification', notification);
+  }
+  @OnEvent('order.confirmed')
+  handleOrderConfirmedEvent(order: OrderEntity) {
+    const notification = new NotificationEntity();
+    notification.emitter = order.service.profession.user;
+    notification.receiver = order.user;
+    notification.title = 'Order confirmed';
+    notification.description = `The order of ${order.service.title} has been confirmed by ${order.service.profession.user.firstName} ${order.service.profession.user.lastName} .`;
+    this.notificationRepository.save(notification);
+    this.eventEmitter.emit('notification', notification);
+  }
+  @OnEvent('order.finished')
+  handleOrderFinishedEvent(order: OrderEntity) {
+    const notification = new NotificationEntity();
+    notification.emitter = order.service.profession.user;
+    notification.title = 'Order finished';
+    notification.description = `The order  ${order.id} is finished .`;
+    this.notificationRepository.save(notification);
+    this.eventEmitter.emit('notification', notification);
   }
 }

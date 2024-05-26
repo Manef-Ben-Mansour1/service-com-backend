@@ -13,17 +13,20 @@ export class NotificationController {
   @Sse('sse')
   @UseGuards(JwtAuthGuard)
   sse(@User() user: UserEntity): Observable<any> {
-    console.log('SSE connection established for user:', user);
-
-    return fromEvent(this.eventEmitter, 'notification.created').pipe(
+    // console.log('SSE connection established for user:', user);
+    return fromEvent(this.eventEmitter, 'notification').pipe(
       filter((payload: NotificationEntity) => {
-        const shouldEmit =
-          user.id === payload.receiver.id || user.role === 'ADMIN';
-        console.log('Filtering payload for user:', shouldEmit, payload);
+        let shouldEmit;
+        if(payload.receiver) {
+          shouldEmit = payload.receiver.id === user.id || user.role === 'ADMIN';
+        }
+        else {
+          shouldEmit = user.role === 'ADMIN';
+        }
         return shouldEmit;
       }),
       map((payload: any) => {
-        console.log('Emitting payload:', payload);
+        // console.log('Emitting payload:', payload);
         return {
           data: JSON.stringify({
             notificationTitle: payload.title,

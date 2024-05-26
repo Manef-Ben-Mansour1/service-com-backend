@@ -23,7 +23,7 @@ export class NotificationEntity extends TimestampEntity {
   // Relation to the user who receives the notification
   @ManyToOne(() => UserEntity, (user) => user.receivedNotifications, {
     eager: true,
-    nullable: false,
+    nullable: true,
   })
   receiver: UserEntity;
 }
