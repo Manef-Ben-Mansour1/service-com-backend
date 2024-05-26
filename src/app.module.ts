@@ -31,7 +31,6 @@ import { UserModule } from './user/user.module';
 import { MessagesGateway } from './chat/chat.gateway';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { WsJwtAuthGuard } from './chat/guards/ws-jwt-auth.guard';
-
 import { EventsModule } from './events/events.module';
 import { EventsGateway } from './events/events.gateway';
 import { WsJwtGuard } from './comment/guards/ws-jwt/ws-jwt.guard';

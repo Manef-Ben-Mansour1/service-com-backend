@@ -6,14 +6,24 @@ import { TimestampEntity } from '../../generics/timestamp.entity';
 export class NotificationEntity extends TimestampEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
   @Column()
   title: string;
+
   @Column()
   description: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.orders, {
+  // Relation to the user who emits/sends the notification
+  @ManyToOne(() => UserEntity, (user) => user.sentNotifications, {
     eager: true,
     nullable: false,
   })
-  user: UserEntity;
+  emitter: UserEntity;
+
+  // Relation to the user who receives the notification
+  @ManyToOne(() => UserEntity, (user) => user.receivedNotifications, {
+    eager: true,
+    nullable: true,
+  })
+  receiver: UserEntity;
 }

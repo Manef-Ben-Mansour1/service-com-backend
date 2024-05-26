@@ -7,10 +7,13 @@ import { ServiceModule } from 'src/service/service.module';
 import { ServiceEntity } from 'src/service/entities/service.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([OrderEntity,ServiceEntity]), ServiceModule], 
-
+  imports: [
+    TypeOrmModule.forFeature([OrderEntity, ServiceEntity]),
+    ServiceModule,
+  ],
   controllers: [OrderController],
   providers: [OrderService],
+  exports: [OrderService],
 
 })
 export class OrderModule {}
