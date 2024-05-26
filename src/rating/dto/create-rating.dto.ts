@@ -1,10 +1,17 @@
-import { Min, Max } from 'class-validator';
+import { Min, Max,  } from 'class-validator';
+import { IsNotEmpty,IsNumber } from "class-validator";
+import {Type} from 'class-transformer'
+
 
 
 export class CreateRatingDto {
   
-  @Min(0) // Ensure value is >= 0
-  @Max(5) // Ensure value is <= 5
+  @Type(()=>Number)
+  @IsNumber()
+  @Min(0) 
+  @Max(5) 
   value: number;
-  static value: any;
+
+  @IsNotEmpty()
+  serviceId:number;
 }

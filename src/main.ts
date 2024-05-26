@@ -17,6 +17,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ExcludeTimestampInterceptor());
   app.use(cookieParser());
 
+
   await app.listen(3000);
-}
+  }
 bootstrap();

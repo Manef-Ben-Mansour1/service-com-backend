@@ -6,32 +6,32 @@ import { CommentEntity } from './entities/comment.entity';
 import { Repository } from 'typeorm';
 import { ServiceEntity } from 'src/service/entities/service.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
+import { ServiceService } from 'src/service/service.service';
+import { EventsGateway } from 'src/events/events.gateway';
 
 @Injectable()
 export class CommentService {
-  serviceService: any;
+ 
 
   constructor(
     @InjectRepository(CommentEntity)
     private readonly CommentRepository: Repository<CommentEntity>,
+    private readonly serviceservice:ServiceService,
   ) {}
-  async create(createRatingDto: CreateCommentDto, serviceId: number, user: UserEntity): Promise<CommentEntity> {
-     const content  = CreateCommentDto;
-
-    // Retrieve the service by ID
-    const service = await this.serviceService.getServiceById(serviceId);
-    if (!service) {
-      throw new NotFoundException('Service not found');
-    }
-
-    // Create a new rating
+  async create(createCommentDto: CreateCommentDto, user: UserEntity): Promise<CommentEntity> {
+    
     const newComment = new CommentEntity();
-    newComment.content = content.toString();
-    newComment.service =service.getServiceById(serviceId);
-    newComment.user =user ;
+      newComment.content=createCommentDto.content;
+      newComment.service = await this.serviceservice.getServiceById(createCommentDto.serviceId);
+      newComment.user =user;
 
-    // Save the rating to the database
-    return await this.CommentRepository.save(newComment);
+      const savedComment = await this.CommentRepository.save(newComment);
+  
+  return savedComment;
+      
+
+
+
   }
 
 
@@ -55,6 +55,9 @@ export class CommentService {
     // Update the comment properties
     if (updateCommentDto.content) {
       comment.content = updateCommentDto.content;
+    }
+    if (updateCommentDto.serviceId) {
+      comment.service = await this.serviceservice.getServiceById(updateCommentDto.serviceId);
     }
 
     // Save the updated comment to the database
