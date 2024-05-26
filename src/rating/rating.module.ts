@@ -17,5 +17,6 @@ import { ServiceModule } from 'src/service/service.module';
 ],
   providers: [RatingService],
   controllers: [RatingController]
+
 })
 export class RatingModule {}

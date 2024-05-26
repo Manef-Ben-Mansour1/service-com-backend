@@ -4,6 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { ServiceProviderSubscribeDto } from './dto/serviceprovider-subscribe.dto';
@@ -20,6 +21,9 @@ import { join } from 'path';
 import { MulterFile } from './interfaces/multer-file.interface';
 import { mkdirSync, existsSync } from 'fs';
 import * as mime from 'mime-types';
+import { use } from 'passport';
+import { Response } from 'express';
+
 
 @Injectable()
 export class UserService {
@@ -59,6 +63,15 @@ export class UserService {
     user: Partial<UserEntity>,
     profileImage: MulterFile,
   ): Promise<void> {
+    const email = user.email;
+    const userWithEmail = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email=:email', { email })
+      .getOne();
+
+    if (userWithEmail) {
+      throw new NotFoundException('Email already exists.');
+    }
     user.salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, user.salt);
 
@@ -88,8 +101,6 @@ export class UserService {
       }
 
       const filePath1 = join(
-        __dirname,
-        '..',
         'uploads',
         'profile-images',
         Date.now() + profileImage.originalname,
@@ -112,6 +123,7 @@ export class UserService {
     profileImage: MulterFile,
   ): Promise<Partial<UserEntity>> {
     const user = this.userRepository.create({ ...userData });
+
     await this.signup(user, profileImage);
     return {
       id: user.id,
@@ -144,7 +156,7 @@ export class UserService {
     };
   }
 
-  async login(credentials: LoginCredentialsDto) {
+  async login(credentials: LoginCredentialsDto, res: Response) {
     const { email, password } = credentials;
 
     const user = await this.userRepository
@@ -153,7 +165,7 @@ export class UserService {
       .getOne();
 
     if (!user) {
-      throw new NotFoundException('email erroné');
+      throw new UnauthorizedException('Wrong Credentials');
     }
 
     const hashedPassword = await bcrypt.hash(password, user.salt);
@@ -166,12 +178,23 @@ export class UserService {
         gouvernorat: user.gouvernorat,
         delegation: user.delegation,
       };
-      const jwt = await this.jwtService.sign(payload);
-      return {
-        access_token: jwt,
+      const nbHours = 3;
+      const expirationTime = nbHours * 3600; // 1 hour in seconds
+      const jwt = this.jwtService.sign(payload, { expiresIn: expirationTime });
+      // Set the JWT in an HTTP-only cookie
+      const cookieOptions = {
+        httpOnly: true,
+        expires: new Date(Date.now() + expirationTime * 1000),
+        path: '/',
+        // You can set other cookie options here, such as `secure: true` for HTTPS
       };
+
+      res.cookie('jwtToken', jwt, cookieOptions);
+
+      // You can now send a response indicating success
+      return res.send({ message: 'Login successful' });
     } else {
-      throw new NotFoundException('password erroné');
+      throw new UnauthorizedException('Wrong credentials');
     }
   }
 
@@ -282,5 +305,5 @@ export class UserService {
       throw new BadRequestException('Veuillez télécharger un cv en pdf.');
     }
   }
- 
 }
+

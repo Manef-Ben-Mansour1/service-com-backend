@@ -9,8 +9,14 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateCommentDto } from '../comment/dto/create-comment.dto';
 import { CommentService } from '../comment/comment.service';
 import { UserService } from 'src/user/user.service';
-@WebSocketGateway({ namespace: 'events' })
-@UseGuards(WsJwtGuard)
+import * as cookie from 'cookie';
+
+@WebSocketGateway({ 
+  cors:{
+    origin:'*',
+},
+  namespace: 'events' })
+//@UseGuards(WsJwtGuard)
 export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect {
   constructor(
     private jwtService :JwtService,
@@ -22,19 +28,17 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
   server: Server;
   async handleConnection(client: Socket) {
     try {
-      const authHeader = client.handshake.headers.authorization;
-
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-
+      const cookies = cookie.parse(client.handshake.headers.cookie || '');
+      const token = cookies['jwtToken']; // Use the name of your cookie
+      if (token) {
         const decoded = this.jwtService.verify(token, {
           secret: process.env.SECRET,
         });
-
+  
         if (decoded) {
           const userId = decoded.id;
           client.data.user = userId;
-
+          console.log('User connected:', userId);
         } else {
           client.disconnect();
         }
@@ -65,9 +69,7 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
 
     const newComment = await this.CommentService.create(
       createCommentDto,
-      user
-    );
-    console.log(newComment);
+      user    );
     
     this.server.emit('newComment', newComment);
     return newComment;

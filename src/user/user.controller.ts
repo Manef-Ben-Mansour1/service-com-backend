@@ -13,6 +13,7 @@ import {
   Param,
   Patch,
   UnauthorizedException,
+  Res,
 } from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { ServiceProviderSubscribeDto } from './dto/serviceprovider-subscribe.dto';
@@ -30,6 +31,7 @@ import { profile } from 'console';
 import { response } from 'express';
 import { AdminOrSelfGuard } from './guards/admin-or-self.guard';
 import { AdminGuard } from './guards/admin.guard';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -65,8 +67,8 @@ export class UserController {
     return this.userService.uploadCv(user.id, cv);
   }
   @Post('login')
-  login(@Body() credentials: LoginCredentialsDto) {
-    return this.userService.login(credentials);
+  login(@Body() credentials: LoginCredentialsDto, @Res() response: Response) {
+    return this.userService.login(credentials, response);
   }
 
   @Patch('approve/:id')
@@ -102,7 +104,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
   async findOne(@Param('id') id: number): Promise<UserEntity> {
     return this.userService.findOne(+id);
   }

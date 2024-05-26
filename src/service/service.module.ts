@@ -10,10 +10,17 @@ import { ServiceResolver } from './service.resolver';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProfessionEntity,CategoryEntity,UserEntity,ServiceEntity])],
+    TypeOrmModule.forFeature([
+      ProfessionEntity,
+      CategoryEntity,
+      UserEntity,
+      ServiceEntity,
+    ]),
+  ],
 
   controllers: [ServiceController],
   providers: [ServiceService, ServiceResolver],
   exports:[ServiceService]
+
 })
 export class ServiceModule {}

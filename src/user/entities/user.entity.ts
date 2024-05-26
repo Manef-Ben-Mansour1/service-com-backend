@@ -5,6 +5,8 @@ import { ProfessionEntity } from '../../profession/entities/profession.entity';
 import { OrderEntity } from '../../order/entities/order.entity';
 import { UserStatusEnum } from '../enum/userStatus.enum';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { NotificationEntity } from 'src/notification/entities/notification.entity';
+
 
 @Entity('user')
 @ObjectType()
@@ -83,4 +85,13 @@ export class UserEntity extends TimestampEntity {
   @OneToMany(() => OrderEntity, order => order.user, { cascade: true, onDelete: 'CASCADE' })
   @Field(() => [OrderEntity]) 
   orders: OrderEntity[];
+
+    // Relation for notifications sent by this user
+    @OneToMany(() => NotificationEntity, (notification) => notification.emitter)
+    sentNotifications: NotificationEntity[];
+  
+    // Relation for notifications received by this user
+    @OneToMany(() => NotificationEntity, (notification) => notification.receiver)
+    receivedNotifications: NotificationEntity[];
+
 }
