@@ -39,6 +39,7 @@ import {
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateRatingDto: UpdateRatingDto) {
       return this.ratingService.update(+id, updateRatingDto);
+      
     }
   
     @Delete(':id')

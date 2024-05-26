@@ -1,6 +1,5 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
 import { Server } from "socket.io";
-import { ServerToClientsEvents } from './types/events';
 import { CommentEntity } from 'src/comment/entities/comment.entity';
 import { WsJwtGuard } from 'src/comment/guards/ws-jwt/ws-jwt.guard';
 import { UseGuards } from '@nestjs/common';
@@ -20,7 +19,7 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
 
   ){}
   @WebSocketServer()
-  server: Server<ServerToClientsEvents>;
+  server: Server;
   async handleConnection(client: Socket) {
     try {
       const authHeader = client.handshake.headers.authorization;
@@ -36,8 +35,6 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
           const userId = decoded.id;
           client.data.user = userId;
 
-          // Optionally join the user to a room corresponding to their userId (for private messaging)
-          client.join(userId.toString()); // Make sure userId is converted to string
         } else {
           client.disconnect();
         }
@@ -51,10 +48,7 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
   }
 
   async handleDisconnect(client: Socket) {
-    // Here you can clean up any resources or perform any necessary actions on user disconnect
     console.log(`Client disconnected: ${client.id}`);
-    // If you had stored any specific user information in client.data, it would be accessible here
-    // For example: const userId = client.data.user;
   }
 
   @SubscribeMessage('comment')
@@ -73,8 +67,9 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
       createCommentDto,
       user
     );
+    console.log(newComment);
     
-    client.emit(`newComment`, newComment);
+    this.server.emit('newComment', newComment);
     return newComment;
   }
 }
