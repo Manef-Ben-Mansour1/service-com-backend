@@ -9,10 +9,18 @@ import { ServiceEntity } from './entities/service.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProfessionEntity,CategoryEntity,UserEntity,ServiceEntity])],
+    TypeOrmModule.forFeature([
+      ProfessionEntity,
+      CategoryEntity,
+      UserEntity,
+      ServiceEntity,
+    ]),
+  ],
 
   controllers: [ServiceController],
   providers: [ServiceService],
-  exports:[ServiceService]
+  exports: [ServiceService]
+
+
 })
 export class ServiceModule {}
