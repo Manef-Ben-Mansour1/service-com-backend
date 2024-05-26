@@ -12,7 +12,8 @@ import {
   UploadedFile,
   Param,
   Patch,
-  UnauthorizedException, Res,
+  UnauthorizedException,
+  Res,
 } from '@nestjs/common';
 import { UserSubscribeDto } from './dto/user-subscribe.dto';
 import { ServiceProviderSubscribeDto } from './dto/serviceprovider-subscribe.dto';
@@ -56,19 +57,18 @@ export class UserController {
     return this.userService.service_register(userData, profileImage);
   }
 
-
   @Patch('cv')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('cv'))
   async uploadCv(
     @User() user,
-    @UploadedFile() cv: MulterFile
+    @UploadedFile() cv: MulterFile,
   ): Promise<Partial<UserEntity>> {
     return this.userService.uploadCv(user.id, cv);
   }
   @Post('login')
-  login(@Body() credentials: LoginCredentialsDto,@Res() response: Response) {
-    return this.userService.login(credentials,response);
+  login(@Body() credentials: LoginCredentialsDto, @Res() response: Response) {
+    return this.userService.login(credentials, response);
   }
 
   @Patch('approve/:id')
@@ -104,7 +104,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
   async findOne(@Param('id') id: number): Promise<UserEntity> {
     return this.userService.findOne(+id);
   }

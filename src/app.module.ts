@@ -31,6 +31,7 @@ import { MessagesGateway } from './chat/chat.gateway';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { WsJwtAuthGuard } from './chat/guards/ws-jwt-auth.guard';
 
+
 dotenv.config();
 
 @Module({
