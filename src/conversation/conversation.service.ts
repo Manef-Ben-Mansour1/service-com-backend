@@ -41,10 +41,10 @@ export class ConversationService {
       );
     }
     const conversation = new ConversationEntity();
-    conversation.user1 = await this.userService.getUserById(
+    conversation.user1 = await this.userService.findOne(
       createConversationDto.user1Id,
     );
-    conversation.user2 = await this.userService.getUserById(
+    conversation.user2 = await this.userService.findOne(
       createConversationDto.user2Id,
     );
     return this.conversationRepository.save(conversation);
@@ -91,7 +91,6 @@ export class ConversationService {
       },
     });
 
-    console.log(conv);
     if (!conv) {
       conv = await this.conversationRepository.findOne({
         relations: {
@@ -108,7 +107,6 @@ export class ConversationService {
         },
       });
     }
-    console.log(conv);
 
     if (!conv) {
       const createConversationDto = new CreateConversationDto();

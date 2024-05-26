@@ -12,7 +12,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { ConversationService } from 'src/conversation/conversation.service';
-import { measureMemory } from 'vm';
 
 @Injectable()
 export class MessageService {
@@ -25,22 +24,20 @@ export class MessageService {
     private readonly conversationService: ConversationService,
   ) {}
 
-  async create(createMessageDto: CreateMessageDto): Promise<MessageEntity> {
+  async create(
+    createMessageDto: CreateMessageDto,
+    senderId: number,
+  ): Promise<MessageEntity> {
     const message = new MessageEntity();
     message.text = createMessageDto.text;
-    message.sender = await this.userService.getUserById(
-      createMessageDto.senderId,
-    );
-    message.recipient = await this.userService.getUserById(
+    message.sender = await this.userService.findOne(senderId);
+    message.recipient = await this.userService.findOne(
       createMessageDto.recipientId,
     );
     const conversation = await this.conversationService.getConversationByUsers(
       message.sender,
       message.recipient,
     );
-    console.log(message.sender);
-    console.log(message.recipient);
-    console.log(conversation);
 
     message.conversation = conversation;
     return this.messageRepository.save(message);
