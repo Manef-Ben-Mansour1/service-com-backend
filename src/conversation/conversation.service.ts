@@ -117,4 +117,15 @@ export class ConversationService {
     }
     return await conv;
   }
+  async getConversationsOfOneUser(
+    userId: number,
+  ): Promise<ConversationEntity[]> {
+    return await this.conversationRepository.find({
+      relations: {
+        user1: true,
+        user2: true,
+      },
+      where: [{ user1: { id: userId } }, { user2: { id: userId } }],
+    });
+  }
 }
