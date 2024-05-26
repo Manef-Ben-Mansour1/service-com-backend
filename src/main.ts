@@ -19,6 +19,7 @@ async function bootstrap() {
     origin: (origin, callback) => callback(null, origin), // Reflect the origin in the CORS header
     credentials: true
   });
+
   await app.listen(3000);
 }
 bootstrap();
