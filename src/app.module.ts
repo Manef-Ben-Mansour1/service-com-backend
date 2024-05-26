@@ -20,11 +20,20 @@ import { CommentEntity } from './comment/entities/comment.entity';
 import { RatingModule } from './rating/rating.module';
 import { RatingEntity } from './rating/entities/rating.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { EventsModule } from './events/events.module';
+import { EventsGateway } from './events/events.gateway';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { WsJwtGuard } from './comment/guards/ws-jwt/ws-jwt.guard';
 
 dotenv.config();
 
 @Module({
-  imports: [MulterModule.register({
+  imports: [
+    JwtModule.register({
+      secret:process.env.SECRET,
+    }),
+    
+    MulterModule.register({
     dest: './uploads',}),
      TypeOrmModule.forRoot({
     type: "mysql",
@@ -35,9 +44,9 @@ dotenv.config();
     database: process.env.DB_NAME,
     entities: [UserEntity,CategoryEntity,ProfessionEntity,ServiceEntity,OrderEntity,CommentEntity,RatingEntity],
     synchronize: true,
-  }), UserModule, CategoryModule, ServiceModule, OrderModule, ProfessionModule, CommentModule, RatingModule],
+  }), UserModule, CategoryModule, ServiceModule, OrderModule, ProfessionModule, CommentModule, RatingModule, EventsModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,EventsGateway, JwtService, WsJwtGuard],
   
 })
 export class AppModule {}

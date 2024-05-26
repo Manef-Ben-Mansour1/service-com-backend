@@ -14,6 +14,7 @@ export class CommentEntity extends TimestampEntity{
   @Column({
     nullable: false,
     length: 255
+    
   })
   content: string;
 
@@ -22,6 +23,7 @@ export class CommentEntity extends TimestampEntity{
 
   @ManyToOne (()=>ServiceEntity,service => service.comments, {eager:true, nullable:false})
   service: ServiceEntity;
+
 
 
 }

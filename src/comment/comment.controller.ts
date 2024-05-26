@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -14,6 +15,10 @@ import { OrderEntity } from 'src/order/entities/order.entity';
 import { ServiceEntity } from 'src/service/entities/service.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { CommentEntity } from './entities/comment.entity';
+import { AdminGuard } from 'src/user/guards/admin.guard';
+import { JwtAuthGuard } from 'src/user/guards/jwt-auth.guard';
+import { User } from 'src/decorators/user.decorator';
+@UseGuards(JwtAuthGuard)
 
 @Controller('comments')
 export class CommentController {
@@ -21,25 +26,19 @@ export class CommentController {
 
   @Post()
   create(@Body() createCommentDto: CreateCommentDto,
-  serviceId: number, user: UserEntity ) {
-    return this.commentService.create(createCommentDto,serviceId,user);
+   @User() user: any ) {
+    return this.commentService.create(createCommentDto,user);
   }
-
-  @Get()
-  findAll() {
-    return this.commentService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commentService.findCommentById(+id);
-  }
-
+ 
+  
   @Get(':serviceId')
    getCommentsByServiceId(@Param('serviceId') serviceId: number): Promise<CommentEntity[]> {
     return this.commentService.findCommentsByServiceId(serviceId);
   }
-  
+  @Get()
+  getComments(): Promise<CommentEntity[]> {
+   return this.commentService.findAll();
+ }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {

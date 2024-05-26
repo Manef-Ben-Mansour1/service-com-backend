@@ -8,47 +8,44 @@ import { UserEntity } from 'src/user/entities/user.entity';
 import { RatingEntity } from './entities/rating.entity';
 import { ServiceService } from 'src/service/service.service';
 
+
 @Injectable()
 export class RatingService {
-  serviceRepository: any;
-  ratingService: any;
+  
   constructor(
     @InjectRepository(RatingEntity)
     private readonly ratingRepository: Repository<RatingEntity>,
-    private readonly serviceService: ServiceService, 
+    private readonly serviceservice: ServiceService, 
   ) {}
 
-  async create(createRatingDto: CreateRatingDto, serviceId: number, user: UserEntity): Promise<RatingEntity> {
-    const { value } = createRatingDto;
-
-    // Retrieve the service by ID
-    const service = await this.serviceService.getServiceById(serviceId);
-    if (!service) {
-      throw new NotFoundException('Service not found');
-    }
-
-    // Create a new rating
+  async create(createRatingDto: CreateRatingDto, user: UserEntity): Promise<RatingEntity> {
     const newRating = new RatingEntity();
-    newRating.value = value;
-    newRating.service = service;
-    newRating.user = user;
+      newRating.value= createRatingDto.value;
+      newRating.service = await this.serviceservice.getServiceById(createRatingDto.serviceId);
+      newRating.user =user;
 
-    // Save the rating to the database
-    return await this.ratingRepository.save(newRating);
+      
+  
+      const savedRating = await this.ratingRepository.save(newRating);
+  
+      return savedRating;
   }
-  async getRatingByServieId( serviceId: number): Promise<RatingEntity> {
-    const ratings = await this.serviceRepository.find({
+
+  
+  async getRatingsByServiceId(serviceId: number): Promise<RatingEntity[]> {
+    const ratings = await this.ratingRepository.find({
       where: {
-          service: { id: serviceId }
+        service: { id: serviceId } // Filter by serviceId
       }
-  });
-            return ratings;
+    });
+    
+    return Promise.resolve(ratings);
   }
 
 
 
   async getAvgRating(serviceId: number): Promise<number> {
-  const ratings = await this.ratingService.getRatingByServieId(serviceId);
+  const ratings = await this.getRatingsByServiceId(serviceId);
     
   const ratingValues: number[] = ratings.map(rating => rating.value);
     if (ratingValues.length === 0) {
