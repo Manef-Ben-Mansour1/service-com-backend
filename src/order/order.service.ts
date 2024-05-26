@@ -13,7 +13,7 @@ export class OrderService {
     @InjectRepository(OrderEntity)
     private readonly orderRepository: Repository<OrderEntity>,
     private readonly serviceService: ServiceService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createOrder(order: CreateOrderDto, user): Promise<OrderEntity> {
@@ -43,11 +43,12 @@ export class OrderService {
       );
     }
     order.status = OrderStatusEnum.CONFIRME;
-    return this.orderRepository.save(order);
+    const savedOrder = this.orderRepository.save(order);
+    this.eventEmitter.emit('order.confirmed', order);
+    return savedOrder;
   }
   async finishOrder(id: number, user): Promise<OrderEntity> {
     const order = await this.orderRepository.findOne({ where: { id } });
-    console.log(order);
     if (order.service.profession.user.id !== user.id) {
       throw new BadRequestException(
         'You are not authorized to confirm this order',
@@ -57,7 +58,9 @@ export class OrderService {
       throw new BadRequestException('Order is not confirmed yet');
     }
     order.status = OrderStatusEnum.FINIE;
-    return this.orderRepository.save(order);
+    const savedOrder = this.orderRepository.save(order);
+    this.eventEmitter.emit('order.finished', order);
+    return savedOrder;
   }
 
   async getOrdersByUser(user): Promise<OrderEntity[]> {
@@ -66,6 +69,9 @@ export class OrderService {
       relations: ['service'],
     });
   }
+  async getAllOrders(): Promise<OrderEntity[]> {
+    return this.orderRepository.find({ relations: ['user', 'service'] });
+  }
   async getOrdersByServiceId(serviceId: number, user): Promise<OrderEntity[]> {
     return this.orderRepository.find({
       where: { service: { id: serviceId } },
@@ -73,9 +79,6 @@ export class OrderService {
     });
   }
   async getOrdersByServiceProvider(user): Promise<OrderEntity[]> {
-    if (!user.profession) {
-      throw new BadRequestException('You are not a service provider');
-    }
     return this.orderRepository.find({
       where: { service: { profession: { user: { id: user.id } } } },
       relations: ['user', 'service'],
