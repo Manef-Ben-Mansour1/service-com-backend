@@ -24,11 +24,16 @@ import { EventsModule } from './events/events.module';
 import { EventsGateway } from './events/events.gateway';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { WsJwtGuard } from './comment/guards/ws-jwt/ws-jwt.guard';
+import { GraphQLModule } from '@nestjs/graphql';
+import { join } from 'path';
 
 dotenv.config();
 
 @Module({
   imports: [
+    GraphQLModule.forRoot({
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    }),
     JwtModule.register({
       secret:process.env.SECRET,
     }),
