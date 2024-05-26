@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import * as dotenv from 'dotenv';
-import * as process from "node:process";
+import * as process from 'node:process';
 import { UserEntity } from './user/entities/user.entity';
 import { TimestampEntity } from './generics/timestamp.entity';
 import { CategoryModule } from './category/category.module';
@@ -26,32 +26,52 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { WsJwtGuard } from './comment/guards/ws-jwt/ws-jwt.guard';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 dotenv.config();
 
 @Module({
   imports: [
-    GraphQLModule.forRoot({
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      autoSchemaFile: true, // Automatically generate schema
+      driver: ApolloDriver,
+      playground: true,
     }),
     JwtModule.register({
-      secret:process.env.SECRET,
+      secret: process.env.SECRET,
     }),
-    
+
     MulterModule.register({
-    dest: './uploads',}),
-     TypeOrmModule.forRoot({
-    type: "mysql",
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT),
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    entities: [UserEntity,CategoryEntity,ProfessionEntity,ServiceEntity,OrderEntity,CommentEntity,RatingEntity],
-    synchronize: true,
-  }), UserModule, CategoryModule, ServiceModule, OrderModule, ProfessionModule, CommentModule, RatingModule, EventsModule],
+      dest: './uploads',
+    }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      entities: [
+        UserEntity,
+        CategoryEntity,
+        ProfessionEntity,
+        ServiceEntity,
+        OrderEntity,
+        CommentEntity,
+        RatingEntity,
+      ],
+      synchronize: true,
+    }),
+    UserModule,
+    CategoryModule,
+    ServiceModule,
+    OrderModule,
+    ProfessionModule,
+    CommentModule,
+    RatingModule,
+    EventsModule,
+  ],
   controllers: [AppController],
-  providers: [AppService,EventsGateway, JwtService, WsJwtGuard],
-  
+  providers: [AppService, EventsGateway, JwtService, WsJwtGuard],
 })
 export class AppModule {}

@@ -1,5 +1,4 @@
 import {
-
   Controller,
   Post,
   Body,
@@ -36,9 +35,6 @@ import { AdminGuard } from './guards/admin.guard';
 export class UserController {
   constructor(private userService: UserService) {}
 
-
-
-
   @Post('register')
   @UseInterceptors(FileInterceptor('profileImage'))
   async register(
@@ -50,7 +46,6 @@ export class UserController {
     return this.userService.register(userData, profileImage);
   }
 
-
   @Post('s-provider-register')
   @UseInterceptors(FileInterceptor('profileImage'))
   async service_register(
@@ -60,25 +55,19 @@ export class UserController {
     return this.userService.service_register(userData, profileImage);
   }
 
-
-
-
-    @Patch("cv")
-    @UseGuards(JwtAuthGuard)
-    @UseInterceptors(FileInterceptor('cv'))
-    async uploadCv(
-      @User() user,
-      @UploadedFile() cv: MulterFile
-    ): Promise<Partial<UserEntity>> {
-        return this.userService.uploadCv(user.id, cv);
-    }
+  @Patch('cv')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('cv'))
+  async uploadCv(
+    @User() user,
+    @UploadedFile() cv: MulterFile,
+  ): Promise<Partial<UserEntity>> {
+    return this.userService.uploadCv(user.id, cv);
+  }
   @Post('login')
   login(@Body() credentials: LoginCredentialsDto) {
     return this.userService.login(credentials);
   }
-
-
-
 
   @Patch('approve/:id')
   @UseGuards(JwtAuthGuard, AdminGuard)
@@ -122,8 +111,4 @@ export class UserController {
   async findAll(): Promise<UserEntity[]> {
     return this.userService.findAll();
   }
-
-
-
 }
-
