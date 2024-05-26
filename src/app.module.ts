@@ -19,6 +19,7 @@ import { ProfessionEntity } from './profession/entities/profession.entity';
 import { ProfessionModule } from './profession/profession.module';
 import { RatingEntity } from './rating/entities/rating.entity';
 import { MulterModule } from '@nestjs/platform-express';
+
 import { NotificationModule } from './notification/notification.module';
 import { NotificationEntity } from './notification/entities/notification.entity';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -30,6 +31,9 @@ import { UserModule } from './user/user.module';
 import { MessagesGateway } from './chat/chat.gateway';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { WsJwtAuthGuard } from './chat/guards/ws-jwt-auth.guard';
+import { EventsModule } from './events/events.module';
+import { EventsGateway } from './events/events.gateway';
+import { WsJwtGuard } from './comment/guards/ws-jwt/ws-jwt.guard';
 
 
 dotenv.config();
@@ -76,8 +80,10 @@ dotenv.config();
     EventEmitterModule.forRoot(),
     MessageModule,
     ConversationModule,
+    EventsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MessagesGateway, JwtService, WsJwtAuthGuard],
+  providers: [AppService, MessagesGateway, JwtService, WsJwtAuthGuard,WsJwtGuard],
+
 })
 export class AppModule {}

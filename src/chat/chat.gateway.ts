@@ -18,9 +18,12 @@ import { JwtService } from '@nestjs/jwt';
 import { Logger, UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
+import * as cookie from 'cookie';
+
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: 'http://localhost:3001',
+    credentials: true,
   },
 })
 //@UseGuards(WsJwtAuthGuard)
@@ -39,11 +42,9 @@ export class MessagesGateway
 
   async handleConnection(client: Socket) {
     try {
-      const authHeader = client.handshake.headers.authorization;
-
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-
+      const cookies = cookie.parse(client.handshake.headers.cookie || '');
+      const token = cookies['jwtToken']; // Use the name of your cookie
+      if (token) {
         const decoded = this.jwtService.verify(token, {
           secret: process.env.SECRET,
         });
@@ -51,9 +52,10 @@ export class MessagesGateway
         if (decoded) {
           const userId = decoded.id;
           client.data.user = userId;
-
           // Optionally join the user to a room corresponding to their userId (for private messaging)
           client.join(userId.toString()); // Make sure userId is converted to string
+          client.to(userId.toString()).emit('id', userId);
+          console.log('id emited');
         } else {
           client.disconnect();
         }
@@ -67,10 +69,7 @@ export class MessagesGateway
   }
 
   async handleDisconnect(client: Socket) {
-    // Here you can clean up any resources or perform any necessary actions on user disconnect
     console.log(`Client disconnected: ${client.id}`);
-    // If you had stored any specific user information in client.data, it would be accessible here
-    // For example: const userId = client.data.user;
   }
   @SubscribeMessage('allMessages')
   async getAllMessages(
@@ -107,15 +106,7 @@ export class MessagesGateway
       createMessageDto,
       client.data.user,
     );
-    // const conv = await this.conversationService.getConversationByUsers(
-    //   sender,
-    //   recipient,
-    // );
-    // const convID = conv.id;
-    // console.log(convID);
-    // client.join(convID.toString());
     client.to(recipient.id.toString()).emit(`message`, newMessage);
-    console.log(client.rooms);
     return newMessage;
   }
 
@@ -127,9 +118,10 @@ export class MessagesGateway
     // Retrieve messages from the database
     const messages =
       await this.messageService.getMessagesByConversationId(+conversationId);
-    console.log(messages);
+    console.log(conversationId);
     // Send the messages to the client
     client.emit('messageHistory', messages);
+    client.emit('id', client.data.user);
 
     return messages;
   }

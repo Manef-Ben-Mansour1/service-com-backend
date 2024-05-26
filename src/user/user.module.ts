@@ -27,6 +27,7 @@ dotenv.config();
   controllers: [UserController],
   exports: [UserService]
 
+
 })
 export class UserModule {}
 

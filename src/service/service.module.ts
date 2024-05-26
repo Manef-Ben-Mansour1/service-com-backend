@@ -11,7 +11,6 @@ import { ServiceEntity } from './entities/service.entity';
   imports: [
     TypeOrmModule.forFeature([
       ProfessionEntity,
-      UserEntity,
       CategoryEntity,
       UserEntity,
       ServiceEntity,
@@ -21,6 +20,7 @@ import { ServiceEntity } from './entities/service.entity';
   controllers: [ServiceController],
   providers: [ServiceService],
   exports: [ServiceService]
+
 
 })
 export class ServiceModule {}
