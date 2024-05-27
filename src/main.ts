@@ -12,7 +12,8 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ExcludeTimestampInterceptor());
   app.use(cookieParser());
   app.enableCors({
-    origin: (origin, callback) => callback(null, origin), 
+    origin: (origin, callback) => callback(null, origin), // Reflect the origin in the CORS header
+    credentials: true
   });
 
   const config = new DocumentBuilder()
