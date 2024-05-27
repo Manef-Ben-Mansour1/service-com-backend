@@ -93,20 +93,16 @@ export class MessagesGateway
   @SubscribeMessage('addMessage')
   async addMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: string,
+    @MessageBody() data: CreateMessageDto,
   ): Promise<MessageEntity> {
     console.log(client.data.user);
-    const createMessageDto: CreateMessageDto = JSON.parse(data);
 
-    const recipient = await this.userService.findOne(
-      createMessageDto.recipientId,
-    );
-
-    const newMessage = await this.messageService.create(
-      createMessageDto,
-      client.data.user,
-    );
+    const recipient = await this.userService.findOne(data.recipientId);
+    console.log(data, client.data.user);
+    const newMessage = await this.messageService.create(data, client.data.user);
+    client.emit('id', client.data.user);
     client.to(recipient.id.toString()).emit(`message`, newMessage);
+    client.emit('id', client.data.user);
     return newMessage;
   }
 
@@ -122,7 +118,11 @@ export class MessagesGateway
     // Send the messages to the client
     client.emit('messageHistory', messages);
     client.emit('id', client.data.user);
-
     return messages;
+  }
+
+  @SubscribeMessage('getCurrentUser')
+  getUserId(@ConnectedSocket() client: Socket): void {
+    client.emit('id', client.data.user);
   }
 }
