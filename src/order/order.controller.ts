@@ -18,7 +18,9 @@ import { UserRole } from 'src/decorators/userRole.decorator';
 import { UserRoleEnum } from 'src/user/enum/userRole.enum';
 import { Roles } from 'src/decorators/roles.metadata';
 import { RolesGuard } from 'src/user/guards/role.guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('order')
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}

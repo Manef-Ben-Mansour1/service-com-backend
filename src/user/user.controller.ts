@@ -32,7 +32,9 @@ import { response } from 'express';
 import { AdminOrSelfGuard } from './guards/admin-or-self.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
