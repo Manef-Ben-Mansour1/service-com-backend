@@ -1,43 +1,68 @@
-import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { TimestampEntity } from '../../generics/timestamp.entity';
 import { OrderEntity } from '../../order/entities/order.entity';
-import { OrderServiceEntity } from '../../order-service/entities/order-service.entity';
 import { ProfessionEntity } from '../../profession/entities/profession.entity';
 import { CommentEntity } from '../../comment/entities/comment.entity';
 import { RatingEntity } from '../../rating/entities/rating.entity';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @Entity('service')
-export class ServiceEntity extends TimestampEntity{
-
+@ObjectType()
+export class ServiceEntity extends TimestampEntity {
   @PrimaryGeneratedColumn()
+  @Field(() => ID) // This decorator makes the field a GraphQL ID field
+
   id: number;
 
   @Column({
-    nullable: false
+    nullable: false,
   })
+  @Field() 
   title: string;
 
-  @Column({nullable: false})
+  @Column({ nullable: false })
+  @Field() 
   description: string;
 
   @Column()
+  @Field() 
   imagePath: string;
 
-  @Column({nullable: false})
+  @Column({ nullable: false })
+  @Field() 
   basePrice: number;
 
-  @ManyToOne(()=>ProfessionEntity, profession => profession.services,{eager:true,nullable:false})
+  @ManyToOne(() => ProfessionEntity, (profession) => profession.services, {
+    eager: true,
+    nullable: false,
+  })
+  @Field(() => ProfessionEntity)
   profession: ProfessionEntity;
 
-
-
-  @OneToMany(()=>OrderServiceEntity, orderService => orderService.service,{ cascade: true, onDelete: 'CASCADE' })
-   orderServices: OrderServiceEntity[];
-
-  @OneToMany(()=>CommentEntity, comment => comment.service,{ cascade: true, onDelete: 'CASCADE' })
+  @OneToMany(() => CommentEntity, (comment) => comment.service, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @Field(() => [CommentEntity])
   comments: CommentEntity[];
 
-
-  @OneToMany(()=>RatingEntity, rating => rating.service,{ cascade: true, onDelete: 'CASCADE' })
-  ratings: CommentEntity[];
+  @OneToMany(() => RatingEntity, (rating) => rating.service, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @Field(() => [RatingEntity])
+  ratings: RatingEntity[];
+  @OneToMany(()=>OrderEntity, (order)=>order.service, {
+    cascade: ['soft-remove'],
+    onDelete: 'CASCADE'
+  })
+  @Field(() => [OrderEntity])
+  orders: OrderEntity[];
 }

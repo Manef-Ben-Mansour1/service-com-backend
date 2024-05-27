@@ -3,8 +3,9 @@ import { ProfessionService } from './profession.service';
 import { CreateProfessionDto } from './dto/create-profession.dto';
 import { ProfessionEntity } from './entities/profession.entity';
 import { UpdateProfessionDto } from './dto/update-profession.dto';
-import { CategoryEntity } from '../category/entities/category.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('profession')
 @Controller('profession')
 export class ProfessionController {
   constructor(private  readonly  professionService:ProfessionService) {}
@@ -37,6 +38,11 @@ export class ProfessionController {
     }
 
     return this.professionService.getAllProfessionsWithPagination(+page, +pageSize);
+  }
+
+@Get(':id')
+  async getProfessionById(@Param('id',ParseIntPipe) id: number): Promise<ProfessionEntity> {
+    return this.professionService.getProfessionById(id);
   }
 
 
