@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: my-mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: '0000'
+      MYSQL_DATABASE: 'servicecom'
+    ports:
+      - "3307:3306" # Host port 3307 mapped to container port 3306
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  nestjs:
+    build: .
+    container_name: my-nestjs-container
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: my-mysql-container
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: '0000'
+      DB_DATABASE: servicecom
+
+volumes:
+  mysql-data:
