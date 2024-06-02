@@ -26,7 +26,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RatingModule } from './rating/rating.module';
 import { ServiceEntity } from './service/entities/service.entity';
 import { ServiceModule } from './service/service.module';
-import { UserEntity } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { MessagesGateway } from './chat/chat.gateway';
 import { JwtModule, JwtService } from '@nestjs/jwt';

@@ -8,6 +8,12 @@ import {UpdateCategoryDto} from './dto/update-category.dto';
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
+  
+  @Get()
+  async getAllCategories(): Promise<any> {
+    return this.categoryService.getCategoriesWithServiceCounts();
+  }
+
 
   @Post()
   async create(@Body() createCategoryDto: CreateCategoryDto): Promise<CategoryEntity> {
@@ -29,16 +35,6 @@ export class CategoryController {
     return this.categoryService.recoverCategory(id);
   }
 
-  @Get()
-  async getAllCategories(
-    @Query('page') page: number,
-    @Query('pageSize') pageSize: number,
-  ): Promise<CategoryEntity[]> {
-    if (!page || !pageSize) {
-      return this.categoryService.getAllCategories();
-    }
-    return this.categoryService.getAllCategoriesWithPagination(+page, +pageSize);
-  }
 
   @Get(':id')
   async getCategoryById(@Param('id', ParseIntPipe) id: number): Promise<CategoryEntity> {

@@ -32,10 +32,27 @@ import { response } from 'express';
 import { AdminOrSelfGuard } from './guards/admin-or-self.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { Response } from 'express';
+import { ServiceProviderDto } from './dto/service-provider.dto';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
+
+  @Get('service-providers')
+  async getServiceProviders(): Promise<any> {
+    return this.userService.getServiceProviders();
+  }
+
+  @Get('service-providers/:id')
+  async getServiceProviderById(@Param('id') id: number): Promise<any> {
+    return this.userService.getServiceProviderById(id);
+  }
+
+  @Get('pending')
+  async getPending(): Promise<any> {
+    return this.userService.getPending();
+  }
+
 
   @Post('register')
   @UseInterceptors(FileInterceptor('profileImage'))
@@ -98,7 +115,6 @@ export class UserController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, AdminOrSelfGuard)
-  @UseGuards(JwtAuthGuard)
   async remove(@Param('id') id: number): Promise<void> {
     return this.userService.remove(+id);
   }
@@ -108,9 +124,13 @@ export class UserController {
   async findOne(@Param('id') id: number): Promise<UserEntity> {
     return this.userService.findOne(+id);
   }
+
+
+
   @Get()
   @UseGuards(JwtAuthGuard)
   async findAll(): Promise<UserEntity[]> {
     return this.userService.findAll();
   }
+
 }
