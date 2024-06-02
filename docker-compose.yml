@@ -9,12 +9,12 @@ services:
       MYSQL_ROOT_PASSWORD: '0000'
       MYSQL_DATABASE: 'service_com'
     ports:
-      - "3306:3306" # Host port 3306 mapped to container port 3306
+      - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
 
   nestjs:
-    build: .
+    image: manef639/servicecom-backend
     container_name: my-nestjs-container
     restart: always
     ports:
