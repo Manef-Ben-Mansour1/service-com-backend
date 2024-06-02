@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryEntity } from '../category/entities/category.entity';
 import { Repository } from 'typeorm';
@@ -124,10 +124,10 @@ export class ServiceService {
   async getServiceById(id: number): Promise<ServiceEntity> {
     const service = await this.serviceRepository.findOne({ 
       where: { id },
-      relations: ['ratings', 'comments'], 
+      relations: ['ratings', 'comments', 'orders'], 
     });
     if (!service) {
-      throw new BadRequestException('No Service with this id');
+      throw new NotFoundException('No Service with this id');
     }
     return service;
   }

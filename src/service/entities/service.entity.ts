@@ -58,7 +58,7 @@ export class ServiceEntity extends TimestampEntity {
     onDelete: 'CASCADE',
   })
   @Field(() => [RatingEntity])
-  ratings: CommentEntity[];
+  ratings: RatingEntity[];
   @OneToMany(()=>OrderEntity, (order)=>order.service, {
     cascade: ['soft-remove'],
     onDelete: 'CASCADE'

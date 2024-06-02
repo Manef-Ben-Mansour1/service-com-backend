@@ -9,13 +9,17 @@ export class ServiceResolver {
   @Query(() => ServiceEntity, { name: 'getService' })
   async findOne(@Args('id', { type: () => Int }) id: number): Promise<ServiceEntity> {
     const service = await this.serviceService.getServiceById(id);
-    console.log(service);
+    console.log('Service in Resolver:', JSON.stringify(service, null, 2));
     if (!service.ratings) {
-      service.ratings = []; // Ensure ratings is never null
+      service.ratings = [];
     }
     if (!service.comments) {
-      service.comments = []; // Ensure comments is never null
+      service.comments = [];
+    }
+    if (!service.orders) {
+      service.orders = [];
     }
     return service;
   }
+  
 }
