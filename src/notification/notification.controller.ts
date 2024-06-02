@@ -5,7 +5,8 @@ import { User } from 'src/decorators/user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { JwtAuthGuard } from 'src/user/guards/jwt-auth.guard';
 import { NotificationEntity } from './entities/notification.entity';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('notification')
 @Controller('notification')
 export class NotificationController {
   constructor(private eventEmitter: EventEmitter2) {}

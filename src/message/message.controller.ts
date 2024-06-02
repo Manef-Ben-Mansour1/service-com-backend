@@ -16,7 +16,8 @@ import { AdminGuard } from 'src/user/guards/admin.guard';
 import { AdminOrSelfGuard } from 'src/user/guards/admin-or-self.guard';
 import { User } from 'src/decorators/user.decorator';
 import { UserEntity } from 'src/user/entities/user.entity';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('message')
 @Controller('messages')
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}

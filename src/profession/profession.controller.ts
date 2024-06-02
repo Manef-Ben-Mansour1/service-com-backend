@@ -3,8 +3,9 @@ import { ProfessionService } from './profession.service';
 import { CreateProfessionDto } from './dto/create-profession.dto';
 import { ProfessionEntity } from './entities/profession.entity';
 import { UpdateProfessionDto } from './dto/update-profession.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags('profession')
 @Controller('profession')
 export class ProfessionController {
   constructor(private  readonly  professionService:ProfessionService) {}

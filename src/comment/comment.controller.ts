@@ -18,8 +18,9 @@ import { CommentEntity } from './entities/comment.entity';
 import { AdminGuard } from 'src/user/guards/admin.guard';
 import { JwtAuthGuard } from 'src/user/guards/jwt-auth.guard';
 import { User } from 'src/decorators/user.decorator';
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('comments')
 @UseGuards(JwtAuthGuard)
-
 @Controller('comments')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}

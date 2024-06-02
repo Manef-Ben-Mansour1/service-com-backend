@@ -13,7 +13,9 @@ import { ConversationService } from './conversation.service';
 import { User } from '../decorators/user.decorator';
 import { UserEntity } from '../user/entities/user.entity';
 import { JwtAuthGuard } from '../user/guards/jwt-auth.guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('conversation')
 @Controller('conversations')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
