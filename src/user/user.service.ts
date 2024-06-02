@@ -23,6 +23,7 @@ import { mkdirSync, existsSync } from 'fs';
 import * as mime from 'mime-types';
 import { use } from 'passport';
 import { Response } from 'express';
+import { ServiceProviderDto } from './dto/service-provider.dto';
 
 
 @Injectable()
@@ -68,13 +69,11 @@ export class UserService {
       .createQueryBuilder('user')
       .where('user.email=:email', { email })
       .getOne();
-
     if (userWithEmail) {
       throw new NotFoundException('Email already exists.');
     }
     user.salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, user.salt);
-
     if (profileImage) {
       const fileType = mime.lookup(profileImage.originalname);
 
@@ -84,7 +83,6 @@ export class UserService {
           /[^a-z0-9.]/gi,
           '_',
         );
-
         const uploadsDir = join(__dirname, '..', 'uploads', 'profile-images');
         // Ensure the uploads directory exists
         if (!existsSync(uploadsDir)) {
@@ -92,25 +90,13 @@ export class UserService {
         }
         const filePath = join(uploadsDir, Date.now() + sanitizedFileName);
         const fileStream = createWriteStream(filePath);
-
         fileStream.write(profileImage.buffer);
         fileStream.end();
         user.profileImagePath = filePath;
       } else {
         throw new BadRequestException('Veuillez télécharger une image');
       }
-
-      const filePath1 = join(
-        'uploads',
-        'profile-images',
-        Date.now() + profileImage.originalname,
-      );
-      const fileStream1 = createWriteStream(filePath1);
-      fileStream1.write(profileImage.buffer);
-      fileStream1.end();
-      user.profileImagePath = filePath1;
     }
-
     try {
       await this.userRepository.save(user);
     } catch (e) {
@@ -251,10 +237,6 @@ export class UserService {
     };
   }
 
-  private isAdmin(user): boolean {
-    return user.role === UserRoleEnum.ADMIN;
-  }
-
   async uploadCv(id: number, cv: MulterFile): Promise<Partial<UserEntity>> {
     const userToUpdate = await this.userRepository.findOne({
       where: { id },
@@ -305,5 +287,69 @@ export class UserService {
       throw new BadRequestException('Veuillez télécharger un cv en pdf.');
     }
   }
-}
 
+  
+  async getServiceProviders(): Promise<any[]> {
+    const query = `
+    SELECT 
+    u.id,
+    u.firstName,
+    u.lastName,
+    u.profileImagePath,
+    c.title as profession,
+    GROUP_CONCAT(DISTINCT s.title) as skills,
+    COUNT(DISTINCT s.id) AS serviceCount,
+    ROUND(AVG(r.value),1) AS averageRating
+  FROM user u
+  LEFT JOIN profession p ON p.userId = u.id
+  LEFT JOIN category c ON p.categoryId = c.id
+  LEFT JOIN service s ON s.professionId = p.id
+  LEFT JOIN rating r ON r.serviceId = s.id
+  WHERE u.role = 'SERVICE_PROVIDER'
+  GROUP BY u.id, u.firstName, u.lastName, u.profileImagePath, c.title
+  ORDER BY averageRating DESC
+  LIMIT 6;  
+    `;
+  
+    return this.userRepository.query(query);
+  }
+
+  async getServiceProviderById(id: number): Promise<any> {
+    const query = `
+    SELECT
+    u.id,
+    u.firstName,
+    u.lastName,
+    u.profileImagePath,
+    c.title as profession,
+    GROUP_CONCAT(DISTINCT CONCAT(s.id, ':', s.title) SEPARATOR ', ') as skills,
+    COUNT(DISTINCT s.id) AS serviceCount,
+    ROUND(AVG(r.value), 1) AS averageRating
+FROM user u
+LEFT JOIN profession p ON p.userId = u.id
+LEFT JOIN category c ON p.categoryId = c.id
+LEFT JOIN service s ON s.professionId = p.id
+LEFT JOIN rating r ON r.serviceId = s.id
+WHERE u.role = 'SERVICE_PROVIDER' AND u.id = ?
+GROUP BY u.id, u.firstName, u.lastName, u.profileImagePath, c.title;
+
+    `;
+    return this.userRepository.query(query, [id]);
+  }
+  
+  async getPending(): Promise<any[]> {
+    const query= `
+    SELECT
+    u.id,
+    u.firstName,
+    u.lastName,
+    u.profileImagePath as image,
+    c.title as profession
+    FROM user u
+    LEFT JOIN profession p ON p.userId = u.id
+    LEFT JOIN category c ON p.categoryId = c.id
+    WHERE u.status = 'PENDING' ;
+    ` ;
+    return this.userRepository.query(query);
+   }
+}
