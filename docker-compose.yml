@@ -3,6 +3,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
+    privileged: true
     container_name: my-mysql-container
     restart: always
     environment:
@@ -15,6 +16,7 @@ services:
 
   nestjs:
     image: manef639/servicecom-backend
+    privileged: true
     container_name: my-nestjs-container
     restart: always
     ports:
