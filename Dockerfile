@@ -19,6 +19,19 @@ RUN npm run build
 # Expose the application port
 EXPOSE 3000
 
+ENV DB_HOST=mysql
+
+ENV DB_TYPE=mysql
+
+ENV DB_PORT=3306
+
+ENV DB_USERNAME=root
+
+ENV DB_PASSWORD=fawzi1234
+
+ENV DB_NAME=service_com
+
+ENV SECRET=yfoyfyitdotkuyfouyoyf
 
 # Command to run the application
 CMD ["npm", "run", "start:prod"]
