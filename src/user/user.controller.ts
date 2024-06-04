@@ -51,6 +51,12 @@ export class UserController {
     return this.userService.getServiceProviderById(id);
   }
 
+  @Get('/auth')
+  @UseGuards(JwtAuthGuard)
+  async finduser(@User() user): Promise<UserEntity> {
+    return this.userService.findOne(user.id);
+  }
+
   @Get('pending')
   async getPending(): Promise<any> {
     return this.userService.getPending();
@@ -64,7 +70,6 @@ export class UserController {
     @UploadedFile() profileImage: MulterFile,
     @Req() request: Request,
   ): Promise<Partial<UserEntity>> {
-    console.log(response.status);
     return this.userService.register(userData, profileImage);
   }
 
