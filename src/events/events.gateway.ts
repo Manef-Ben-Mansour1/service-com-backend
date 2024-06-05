@@ -22,7 +22,7 @@ import * as cookie from 'cookie';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://20.188.44.129:3001',
+    origin: '*',
     credentials: true,
   },
   namespace: 'events',
