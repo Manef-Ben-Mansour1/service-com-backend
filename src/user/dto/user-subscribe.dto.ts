@@ -24,4 +24,7 @@ export class UserSubscribeDto {
 
   @IsNotEmpty()
   password: string;
+
+  @IsOptional()
+  role: UserRoleEnum;
 }

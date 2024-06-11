@@ -22,7 +22,7 @@ import * as cookie from 'cookie';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:3001',
+    origin: '*',
     credentials: true,
   },
 })

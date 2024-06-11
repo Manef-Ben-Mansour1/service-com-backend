@@ -123,33 +123,47 @@ export class CategoryService {
     await this.professionRepository.recover(profession);
   }
 
+  async getCategoriesWithServiceCounts(): Promise<any> {
+    const query = `
+      SELECT 
+        c.id, 
+        c.title, 
+        c.iconPath, 
+        COUNT(s.id) AS serviceCount
+      FROM category c
+      LEFT JOIN profession p ON p.categoryId = c.id
+      LEFT JOIN service s ON s.professionId = p.id
+      GROUP BY c.id, c.title, c.iconPath
+    `;
+    return this.categoryRepository.query(query);
+  }
 
 
   async getAllCategories(): Promise<CategoryEntity[]> {
     return this.categoryRepository.find();
   }
 
-  async getAllCategoriesWithPagination(page: number, pageSize: number): Promise<CategoryEntity[]> {
-    if (page <= 0) {
-      throw new BadRequestException('Page number should be greater than 0');
-    }
-    if (pageSize <= 0) {
-      throw new BadRequestException('Page size should be greater than 0');
-    }
+  // async getAllCategoriesWithPagination(page: number, pageSize: number): Promise<CategoryEntity[]> {
+  //   if (page <= 0) {
+  //     throw new BadRequestException('Page number should be greater than 0');
+  //   }
+  //   if (pageSize <= 0) {
+  //     throw new BadRequestException('Page size should be greater than 0');
+  //   }
 
-    if (!isInt(page)) {
-      throw new BadRequestException('Page number should be an integer');
-    }
-    if (!isInt(pageSize)) {
-      throw new BadRequestException('Page size should be an integer');
-    }
+  //   if (!isInt(page)) {
+  //     throw new BadRequestException('Page number should be an integer');
+  //   }
+  //   if (!isInt(pageSize)) {
+  //     throw new BadRequestException('Page size should be an integer');
+  //   }
 
-    const skip = (page - 1) * pageSize;
-    return this.categoryRepository.find({
-      skip,
-      take: pageSize,
-    });
-  }
+  //   const skip = (page - 1) * pageSize;
+  //   return this.categoryRepository.find({
+  //     skip,
+  //     take: pageSize,
+  //   });
+  // }
 
   async getCategoryById(id: number): Promise<CategoryEntity> {
     const category = await this.categoryRepository.findOne({ where: { id } });

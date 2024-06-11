@@ -1,5 +1,14 @@
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from '@nestjs/websockets';
-import { Server } from "socket.io";
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  WsException,
+} from '@nestjs/websockets';
+import { Server } from 'socket.io';
 import { CommentEntity } from 'src/comment/entities/comment.entity';
 import { WsJwtGuard } from 'src/comment/guards/ws-jwt/ws-jwt.guard';
 import { UseGuards } from '@nestjs/common';
@@ -11,19 +20,20 @@ import { CommentService } from '../comment/comment.service';
 import { UserService } from 'src/user/user.service';
 import * as cookie from 'cookie';
 
-@WebSocketGateway({ 
-  cors:{
-    origin:'*',
-},
-  namespace: 'events' })
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+    credentials: true,
+  },
+  namespace: 'events',
+})
 //@UseGuards(WsJwtGuard)
-export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect {
+export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
-    private jwtService :JwtService,
+    private jwtService: JwtService,
     private userService: UserService,
-    private CommentService :CommentService,
-
-  ){}
+    private CommentService: CommentService,
+  ) {}
   @WebSocketServer()
   server: Server;
   async handleConnection(client: Socket) {
@@ -34,7 +44,7 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
         const decoded = this.jwtService.verify(token, {
           secret: process.env.SECRET,
         });
-  
+
         if (decoded) {
           const userId = decoded.id;
           client.data.user = userId;
@@ -63,14 +73,10 @@ export class EventsGateway implements OnGatewayConnection , OnGatewayDisconnect 
     console.log(client.data.user);
     const createCommentDto: CreateCommentDto = JSON.parse(data);
 
-    const user = await this.userService.findOne(
-      client.data.user
-    );
+    const user = await this.userService.findOne(client.data.user);
 
-    const newComment = await this.CommentService.create(
-      createCommentDto,
-      user    );
-    
+    const newComment = await this.CommentService.create(createCommentDto, user);
+
     this.server.emit('newComment', newComment);
     return newComment;
   }

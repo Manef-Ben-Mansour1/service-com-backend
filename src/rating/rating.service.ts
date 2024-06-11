@@ -44,19 +44,24 @@ export class RatingService {
 
 
 
-  async getAvgRating(serviceId: number): Promise<number> {
-  const ratings = await this.getRatingsByServiceId(serviceId);
-    
-  const ratingValues: number[] = ratings.map(rating => rating.value);
+async getAvgRating(
+    serviceId: number,
+  ): Promise<{ averageRating: number; count: number }> {
+    const ratings = await this.getRatingsByServiceId(serviceId);
+
+    const ratingValues: number[] = ratings.map((rating) => rating.value);
     if (ratingValues.length === 0) {
-        return 0; // No ratings found, return 0
+      return { averageRating: 0, count: 0 };
     }
 
-    const totalRatingValue = ratingValues.reduce((acc, value) => acc + value, 0);
+    const totalRatingValue = ratingValues.reduce(
+      (acc, value) => acc + value,
+      0,
+    );
     const averageRating = totalRatingValue / ratingValues.length;
 
-    return averageRating;
-}
+    return { averageRating, count: ratingValues.length };
+  }
 
 async update(id: number, updateRatingDto: UpdateRatingDto): Promise<RatingEntity> {
   const rating = await this.findOne(id);
